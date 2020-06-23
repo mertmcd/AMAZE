@@ -121,7 +121,8 @@ function startGame() {
 
     ///// C O D E   B E L O W \\\\\
 
-    let gridSize = 5; // default
+    let gridSize = 7; // default value of grid size.
+    //let gridSizeCoefficient = 5 / gridSize; // Line width due to grid size.
 
     // DRAWING MAINBOARD AS POLYGON
 
@@ -129,21 +130,11 @@ function startGame() {
     mainBoard = scene.add.polygon(0, 0, points, 0x4E4E58).setOrigin(0.5);
 
     mainBoard.onResizeCallback = function (w, h) {
-
-        let scale = Math.max(w / this.width, h / this.height);
-
-        if (!isLandscape) {
-            this.setScale(scale * 0.4);
-            this.y = h * 0.5;
-            this.x = w * 0.5;
-        } else {
-            this.setScale(scale * 0.4);
-            this.y = h * 0.5;
-            this.x = w * 0.5;
-        }
+        let scale = Math.min(w * 0.6 / this.width, h * 0.6 / this.height);
+        this.setScale(scale);
+        this.y = h * 0.5;
+        this.x = w * 0.5;
     }
-
-    let height = mainBoard.displayHeight; // silinecek yatay çizgiler tanımlanınca
 
     let fixedPathData = [];
     let lineArrayVertical = [];
@@ -183,8 +174,8 @@ function startGame() {
 
     for (let i = 0; i < gridSize + 1; i++) {
 
-        let line = this.add.line(0, 0, startPointTop + upperInterval * i, 0, startPointBottom + lowerInterval * i, height, 0x797B87).setOrigin(0);
-        line.setLineWidth(1);
+        let line = this.add.line(0, 0, startPointTop + upperInterval * i, 0, startPointBottom + lowerInterval * i, mainBoard.displayHeight, 0x797B87).setOrigin(0);
+        line.setLineWidth(0.5);
 
         line.onResizeCallback = function (w, h) {
             this.setScale(mainBoard.scale);
@@ -199,8 +190,8 @@ function startGame() {
 
     for (let i = 0; i < gridSize + 1; i++) {
 
-        let line = this.add.line(0, 0, startPointTop - sideIntervalX * i, startPointLeft + sideIntervalY * i, startPointTop + upperWidth + sideIntervalX * i, startPointRight + sideIntervalY * i, 0x797B87).setOrigin(0);
-        line.setLineWidth(1);
+        let line = this.add.line(0, 0, startPointTop - sideIntervalX * i - lineArrayVertical[0].displayWidth * 0.2, startPointLeft + sideIntervalY * i, startPointTop + upperWidth + sideIntervalX * i + lineArrayVertical[0].displayWidth * 0.2, startPointRight + sideIntervalY * i, 0x797B87).setOrigin(0);
+        line.setLineWidth(0.5);
 
         line.onResizeCallback = function (w, h) {
             this.setScale(mainBoard.scale);
@@ -208,7 +199,7 @@ function startGame() {
             this.x = mainBoard.getLeftCenter().x;
         }
         lineArrayHorizontal.push(line);
-    }2
+    }
     lineArrayHorizontal[0].setLineWidth(2);
     lineArrayHorizontal[gridSize].setLineWidth(false);
     //console.log(lineArrayHorizontal);  
