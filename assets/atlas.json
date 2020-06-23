@@ -1,0 +1,62 @@
+{
+	"textures": [
+		{
+			"image": "atlas.png",
+			"format": "RGBA8888",
+			"size": {
+				"w": 329,
+				"h": 522
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "button",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 327,
+						"h": 137
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 327,
+						"h": 137
+					},
+					"frame": {
+						"x": 1,
+						"y": 1,
+						"w": 327,
+						"h": 137
+					}
+				},
+				{
+					"filename": "logo",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 400,
+						"h": 400
+					},
+					"spriteSourceSize": {
+						"x": 55,
+						"y": 7,
+						"w": 296,
+						"h": 381
+					},
+					"frame": {
+						"x": 1,
+						"y": 140,
+						"w": 296,
+						"h": 381
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "3.0",
+		"smartupdate": "$TexturePacker:SmartUpdate:dc68deffc74af0d73963ac351cf6efd3:4784a9c6ca23e96e0b43005656487da4:cbce6b53f0f49e0bf15173c25c41f876$"
+	}
+}
