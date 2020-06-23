@@ -122,9 +122,11 @@ function startGame() {
     ///// C O D E   B E L O W \\\\\
 
     let gridSize = 7; // default
-  
+
+    // DRAWING MAINBOARD AS POLYGON
+
     points = [10, 0, 200, 0, 210, 200, 0, 200];
-    mainBoard = this.add.polygon(0, 0, points, 0x808080).setOrigin(0.5);
+    mainBoard = scene.add.polygon(0, 0, points, 0x505050).setOrigin(0.5);
 
     mainBoard.onResizeCallback = function (w, h) {
 
@@ -141,17 +143,72 @@ function startGame() {
         }
     }
 
+    let height = mainBoard.displayHeight; // silinecek yatay çizgiler tanımlanınca
+
+    let fixedPathData = [];
+    let lineArrayVertical = [];
+    let lineArrayHorizontal = [];
+
+    for (let i = 0; i < mainBoard.pathData.length - 2; i += 2) {
+        fixedPathData.push({
+            x: mainBoard.pathData[i],
+            y: mainBoard.pathData[i + 1]
+        });
+    }
+
+    // VERTICAL LINE ADJUSTMENTS
+
+    let upperWidth = Math.abs(fixedPathData[0].x - fixedPathData[1].x);
+    let lowerWidth = Math.abs(fixedPathData[3].x - fixedPathData[2].x);
+
+    let startPointTop = fixedPathData[0].x;
+    let startPointBottom = fixedPathData[3].x;
+
+    let upperInterval = upperWidth / gridSize;
+    let lowerInterval = lowerWidth / gridSize;
+
+
+    // HORIZONTAL LINE ADJUSTMENTS
+
+    let edgeHeight = Math.abs(fixedPathData[0].y - fixedPathData[3].y);
+    let edgeWidth = Math.abs(fixedPathData[0].x - fixedPathData[3].x);
+
+    let startPointLeft = fixedPathData[0].y;
+    let startPointRight = fixedPathData[1].y;
+
+    let sideIntervalY = edgeHeight / gridSize;
+    let sideIntervalX = edgeWidth / gridSize;
+
+
+    for (let i = 0; i < gridSize + 1; i++) {
+
+        let line = this.add.line(0, 0, startPointTop + upperInterval * i, 0, startPointBottom + lowerInterval * i, height, 0xA9A9A9).setOrigin(0);
+        line.setLineWidth(2);
+
+        line.onResizeCallback = function (w, h) {
+            this.setScale(mainBoard.scale);
+            this.y = mainBoard.getTopCenter().y;
+            this.x = mainBoard.getLeftCenter().x;
+        }
+        lineArrayVertical.push(line); 
+    }
+    console.log(lineArrayVertical);
+
+    for (let i = 0; i < gridSize + 1; i++) {
+
+        let line = this.add.line(0, 0, startPointTop - sideIntervalX * i, startPointLeft + sideIntervalY * i, startPointTop + upperWidth + sideIntervalX * i, startPointRight + sideIntervalY * i, 0xA9A9A9).setOrigin(0);
+        line.setLineWidth(2);
+
+        line.onResizeCallback = function (w, h) {
+            this.setScale(mainBoard.scale);
+            this.y = mainBoard.getTopCenter().y;
+            this.x = mainBoard.getLeftCenter().x;
+        }
+        lineArrayHorizontal.push(line); 
+    }
+    console.log(lineArrayHorizontal);
     
-
-    
-
-
-
-
 }
-
-
-
 
 function updateGame(time, delta) {
     currentTime = time;
