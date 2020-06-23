@@ -175,7 +175,7 @@ function startGame() {
     for (let i = 0; i < gridSize + 1; i++) {
 
         let line = this.add.line(0, 0, startPointTop + upperInterval * i, 0, startPointBottom + lowerInterval * i, mainBoard.displayHeight, 0x797B87).setOrigin(0);
-        line.setLineWidth(0.5);
+        line.setLineWidth(0.4);
 
         line.onResizeCallback = function (w, h) {
             this.setScale(mainBoard.scale);
@@ -184,14 +184,14 @@ function startGame() {
         }
         lineArrayVertical.push(line);
     }
-    lineArrayVertical[0].setLineWidth(2);
-    lineArrayVertical[gridSize].setLineWidth(2);
+    lineArrayVertical[0].setLineWidth(1.8);
+    lineArrayVertical[gridSize].setLineWidth(1.8);
     //console.log(lineArrayVertical);
 
     for (let i = 0; i < gridSize + 1; i++) {
 
-        let line = this.add.line(0, 0, startPointTop - sideIntervalX * i - lineArrayVertical[0].displayWidth * 0.2, startPointLeft + sideIntervalY * i, startPointTop + upperWidth + sideIntervalX * i + lineArrayVertical[0].displayWidth * 0.2, startPointRight + sideIntervalY * i, 0x797B87).setOrigin(0);
-        line.setLineWidth(0.5);
+        let line = this.add.line(0, 0, startPointTop - sideIntervalX * i - lineArrayVertical[0].displayWidth * 0.18, startPointLeft + sideIntervalY * i, startPointTop + upperWidth + sideIntervalX * i + lineArrayVertical[0].displayWidth * 0.18, startPointRight + sideIntervalY * i, 0x797B87).setOrigin(0);
+        line.setLineWidth(0.4);
 
         line.onResizeCallback = function (w, h) {
             this.setScale(mainBoard.scale);
@@ -200,7 +200,7 @@ function startGame() {
         }
         lineArrayHorizontal.push(line);
     }
-    lineArrayHorizontal[0].setLineWidth(2);
+    lineArrayHorizontal[0].setLineWidth(1.8);
     lineArrayHorizontal[gridSize].setLineWidth(false);
     //console.log(lineArrayHorizontal);  
 }
