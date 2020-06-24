@@ -47,7 +47,7 @@ let uiScene = {
 let lastWidth, lastHeight, aspectRatio;
 let currentWidth, currentHeight, squareness, isLandscape;
 let currentTime, deltaTime;
-let mainBoard, points, main, data;
+let mainBoard, points, line, main, data;
 
 let gameData = {};
 
@@ -121,14 +121,18 @@ function startGame() {
 
     ///// C O D E   B E L O W \\\\\
 
-    let gridSize = 7;
+    let gridSize = 7; // Not responsive yet due to hardcoding.
     let gridSizeX = 7;
     let gridSizeY = 7; // default value of grid size.
+    let darkGray = 0x4E4E58; // Color of the open mainboard
+    let offWhite = 0xFFFFFF; // Color of the closed mainboard
+    let lightGray = 0x797B87; // Color of the grids.
+    let mustardYellow; // Color of the ball and trail to be painted.
 
     // DRAWING MAINBOARD AS POLYGON
 
     points = [10, 0, 200, 0, 210, 200, 0, 200];
-    mainBoard = scene.add.polygon(0, 0, points, 0x4E4E58).setOrigin(0.5);
+    mainBoard = scene.add.polygon(0, 0, points, darkGray).setOrigin(0.5);
 
     mainBoard.onResizeCallback = function (w, h) {
         let scale = Math.min(w * 0.6 / this.width, h * 0.6 / this.height);
@@ -175,7 +179,7 @@ function startGame() {
 
     for (let i = 0; i < gridSize + 1; i++) {
 
-        let line = this.add.line(0, 0, startPointTop + upperInterval * i, 0, startPointBottom + lowerInterval * i, mainBoard.displayHeight, 0x797B87).setOrigin(0);
+        line = this.add.line(0, 0, startPointTop + upperInterval * i, 0, startPointBottom + lowerInterval * i, mainBoard.displayHeight, lightGray).setOrigin(0);
         line.setLineWidth(0.4);
 
         line.onResizeCallback = function (w, h) {
@@ -194,7 +198,7 @@ function startGame() {
 
     for (let i = 0; i < gridSize + 1; i++) {
 
-        let line = this.add.line(0, 0, startPointTop - sideIntervalX * i, startPointLeft + sideIntervalY * i, startPointTop + upperWidth + sideIntervalX * i, startPointRight + sideIntervalY * i, 0x797B87).setOrigin(0);
+        line = this.add.line(0, 0, startPointTop - sideIntervalX * i, startPointLeft + sideIntervalY * i, startPointTop + upperWidth + sideIntervalX * i, startPointRight + sideIntervalY * i, lightGray).setOrigin(0);
         line.setLineWidth(0.4);
 
         line.onResizeCallback = function (w, h) {
@@ -223,7 +227,7 @@ function startGame() {
             gridPoints.push(out);
         }
     }
-    console.log(gridPoints);
+    //console.log(gridPoints);
 
     // CONVERTING 1D ARRAY TO 2D ARRAY
 
@@ -242,15 +246,15 @@ function startGame() {
 
     // FILLING GRIDS
 
-    let fillColor = 0xFFFFFF; // white (default value)
-    let graphics = this.add.graphics({ fillStyle: { color: fillColor } });
+    let graphics = this.add.graphics({ fillStyle: { color: offWhite } });
+
     graphics.onResizeCallback = function (w, h) {
         this.setScale(mainBoard.scale);
         this.y = mainBoard.getBounds().y;
         this.x = mainBoard.getBounds().x;
     }
 
-    // HARDCODED
+    // // HARDCODED
 
     graphics.fillPoints([gridPoints[32], gridPoints[56], gridPoints[58], gridPoints[50], gridPoints[49], gridPoints[41], gridPoints[33]], true);
     graphics.fillPoints([gridPoints[4], gridPoints[28], gridPoints[29], gridPoints[5]], true);
