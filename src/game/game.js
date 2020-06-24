@@ -128,8 +128,20 @@ function startGame() {
     let offWhite = 0xFFFFFF; // Color of the closed mainboard
     let lightGray = 0x797B87; // Color of the grids.
     let mustardYellow; // Color of the ball and trail to be painted.
+    let boardData = [
+        [0, 0, 0, 0, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0]
+    ]; 
+    
+    // boardData[0]. length yanal uzunluk, boarddata.length dikey u7zunluk verir
 
-    // DRAWING MAINBOARD AS POLYGON
+    // DRAWING MAINBOARD
 
     points = [10, 0, 200, 0, 210, 200, 0, 200];
     mainBoard = scene.add.polygon(0, 0, points, darkGray).setOrigin(0.5);
@@ -153,7 +165,9 @@ function startGame() {
         });
     }
 
-    // VERTICAL LINE ADJUSTMENTS
+    // LINE ADJUSTMENTS
+
+    // Vertical Line Adjustments
 
     let upperWidth = Math.abs(fixedPathData[0].x - fixedPathData[1].x);
     let lowerWidth = Math.abs(fixedPathData[3].x - fixedPathData[2].x);
@@ -164,7 +178,7 @@ function startGame() {
     let upperInterval = upperWidth / gridSize;
     let lowerInterval = lowerWidth / gridSize;
 
-    // HORIZONTAL LINE ADJUSTMENTS
+    // Horizontal Line Adjustments
 
     let edgeHeight = Math.abs(fixedPathData[0].y - fixedPathData[3].y);
     let edgeWidth = Math.abs(fixedPathData[0].x - fixedPathData[3].x);
@@ -175,7 +189,9 @@ function startGame() {
     let sideIntervalY = edgeHeight / gridSize;
     let sideIntervalX = edgeWidth / gridSize;
 
-    // DRAWING CELLS
+    // DRAWING LINES
+
+    // Drawing Vertical Lines
 
     for (let i = 0; i < gridSize + 1; i++) {
 
@@ -187,14 +203,16 @@ function startGame() {
             this.y = mainBoard.getBounds().y;
             this.x = mainBoard.getBounds().x;
         }
-        lineArrayVertical.push(line);  
+        lineArrayVertical.push(line);
     }
     lineArrayVertical[0].setVisible(false);
     lineArrayVertical[gridSize].setVisible(false);
 
-    // lineArrayVertical[0].setLineWidth(0.4);
-    // lineArrayVertical[gridSize].setLineWidth(0.4);
+    //lineArrayVertical[0].setLineWidth(0.4);
+    //lineArrayVertical[gridSize].setLineWidth(0.4);
     //console.log(lineArrayVertical);
+
+    // Drawing Horizontal Lines
 
     for (let i = 0; i < gridSize + 1; i++) {
 
@@ -215,7 +233,7 @@ function startGame() {
     // lineArrayHorizontal[gridSize].setLineWidth(false);
     //console.log(lineArrayHorizontal);
 
-    // THE POINTS OF INTERSECTION LINES
+    // SETTING OF THE POINTS OF INTERSECTED LINES
 
     let gridPoints = [];
 
@@ -227,22 +245,7 @@ function startGame() {
             gridPoints.push(out);
         }
     }
-    //console.log(gridPoints);
-
-    // CONVERTING 1D ARRAY TO 2D ARRAY
-
-//         let matrix = [], i, k;
-//         let elementsPerArray = gridSize + 1;
-
-//         for (i = 0, k = -1; i < gridPoints.length; i++) {
-//             if (i % elementsPerArray === 0) {
-//                 k++;
-//                 matrix[k] = [];
-//             }
-
-//             matrix[k].push(gridPoints[i]);
-//         }
-// console.log(matrix);
+    console.log(gridPoints);
 
     // FILLING GRIDS
 
@@ -254,15 +257,21 @@ function startGame() {
         this.x = mainBoard.getBounds().x;
     }
 
-    // // HARDCODED
+    // for( let i = 0; i < boardData.length; i++ ) {
+    //     for (let j =0; j< boardData[i].length; j++) {
+    //         let a = boardData[i][j] // 0 mı 1 mi getirir.
+    //     }
+    // }
 
-    graphics.fillPoints([gridPoints[32], gridPoints[56], gridPoints[58], gridPoints[50], gridPoints[49], gridPoints[41], gridPoints[33]], true);
-    graphics.fillPoints([gridPoints[4], gridPoints[28], gridPoints[29], gridPoints[5]], true);
-    graphics.fillPoints([gridPoints[36], gridPoints[44], gridPoints[45], gridPoints[37]], true);
-    graphics.fillPoints([gridPoints[10], gridPoints[26], gridPoints[27], gridPoints[11]], true);
-    graphics.fillPoints([gridPoints[34], gridPoints[42], gridPoints[43], gridPoints[35]], true);
-    graphics.fillPoints([gridPoints[38], gridPoints[62], gridPoints[63], gridPoints[39]], true);
-}
+    // HARDCODED
+
+//     graphics.fillPoints([gridPoints[32], gridPoints[56], gridPoints[58], gridPoints[50], gridPoints[49], gridPoints[41], gridPoints[33]], true);
+//     graphics.fillPoints([gridPoints[4], gridPoints[28], gridPoints[29], gridPoints[5]], true);
+//     graphics.fillPoints([gridPoints[36], gridPoints[44], gridPoints[45], gridPoints[37]], true);
+//     graphics.fillPoints([gridPoints[10], gridPoints[26], gridPoints[27], gridPoints[11]], true);
+//     graphics.fillPoints([gridPoints[34], gridPoints[42], gridPoints[43], gridPoints[35]], true);
+//     graphics.fillPoints([gridPoints[38], gridPoints[62], gridPoints[63], gridPoints[39]], true);
+ }
 
 
 
