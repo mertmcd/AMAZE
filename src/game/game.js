@@ -202,7 +202,22 @@ function startGame() {
     }
     lineArrayHorizontal[0].setLineWidth(1.8);
     lineArrayHorizontal[gridSize].setLineWidth(false);
-    //console.log(lineArrayHorizontal);  
+    //console.log(lineArrayHorizontal);
+    
+    // THE POINTS OF INTERSECTION LINES
+
+    let gridPoints = [];
+    
+    for (let i = 0; i < gridSize; i++) { 
+        for (let j = 0; j < gridSize; j++) {
+
+            let out = [];
+            let intersection = Phaser.Geom.Intersects.LineToLine(lineArrayVertical[i].geom, lineArrayHorizontal[j].geom, out);
+            gridPoints.push(out);         
+        }      
+    }
+    console.log(gridPoints);
+
 }
 
 
