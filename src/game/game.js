@@ -121,8 +121,9 @@ function startGame() {
 
     ///// C O D E   B E L O W \\\\\
 
-    let gridSize = 7; // default value of grid size.
-    //let gridSizeCoefficient = 5 / gridSize; // Line width due to grid size.
+    let gridSize = 7;
+    let gridSizeX = 7;
+    let gridSizeY = 7; // default value of grid size.
 
     // DRAWING MAINBOARD AS POLYGON
 
@@ -179,44 +180,85 @@ function startGame() {
 
         line.onResizeCallback = function (w, h) {
             this.setScale(mainBoard.scale);
-            this.y = mainBoard.getTopCenter().y;
-            this.x = mainBoard.getLeftCenter().x;
+            this.y = mainBoard.getBounds().y;
+            this.x = mainBoard.getBounds().x;
         }
-        lineArrayVertical.push(line);
+        lineArrayVertical.push(line);  
     }
-    lineArrayVertical[0].setLineWidth(1.8);
-    lineArrayVertical[gridSize].setLineWidth(1.8);
+    lineArrayVertical[0].setVisible(false);
+    lineArrayVertical[gridSize].setVisible(false);
+
+    // lineArrayVertical[0].setLineWidth(0.4);
+    // lineArrayVertical[gridSize].setLineWidth(0.4);
     //console.log(lineArrayVertical);
 
     for (let i = 0; i < gridSize + 1; i++) {
 
-        let line = this.add.line(0, 0, startPointTop - sideIntervalX * i - lineArrayVertical[0].displayWidth * 0.18, startPointLeft + sideIntervalY * i, startPointTop + upperWidth + sideIntervalX * i + lineArrayVertical[0].displayWidth * 0.18, startPointRight + sideIntervalY * i, 0x797B87).setOrigin(0);
+        let line = this.add.line(0, 0, startPointTop - sideIntervalX * i, startPointLeft + sideIntervalY * i, startPointTop + upperWidth + sideIntervalX * i, startPointRight + sideIntervalY * i, 0x797B87).setOrigin(0);
         line.setLineWidth(0.4);
 
         line.onResizeCallback = function (w, h) {
             this.setScale(mainBoard.scale);
-            this.y = mainBoard.getTopCenter().y;
-            this.x = mainBoard.getLeftCenter().x;
+            this.y = mainBoard.getBounds().y;
+            this.x = mainBoard.getBounds().x;
         }
         lineArrayHorizontal.push(line);
     }
-    lineArrayHorizontal[0].setLineWidth(1.8);
-    lineArrayHorizontal[gridSize].setLineWidth(false);
+    lineArrayHorizontal[0].setVisible(false);
+    lineArrayHorizontal[gridSize].setVisible(false);
+
+    // lineArrayHorizontal[0].setLineWidth(0.4);
+    // lineArrayHorizontal[gridSize].setLineWidth(false);
     //console.log(lineArrayHorizontal);
-    
+
     // THE POINTS OF INTERSECTION LINES
 
     let gridPoints = [];
-    
-    for (let i = 0; i < gridSize; i++) { 
-        for (let j = 0; j < gridSize; j++) {
+
+    for (let i = 0; i < gridSize + 1; i++) {
+        for (let j = 0; j < gridSize + 1; j++) {
 
             let out = [];
             let intersection = Phaser.Geom.Intersects.LineToLine(lineArrayVertical[i].geom, lineArrayHorizontal[j].geom, out);
-            gridPoints.push(out);         
-        }      
+            gridPoints.push(out);
+        }
     }
     console.log(gridPoints);
+
+    // CONVERTING 1D ARRAY TO 2D ARRAY
+
+        let matrix = [], i, k;
+        let elementsPerArray = gridSize + 1;
+
+        for (i = 0, k = -1; i < gridPoints.length; i++) {
+            if (i % elementsPerArray === 0) {
+                k++;
+                matrix[k] = [];
+            }
+
+            matrix[k].push(gridPoints[i]);
+        }
+console.log(matrix);
+
+    // FILLING GRIDS
+
+    let fillColor = 0xFFFFFF; // white (default value)
+    let graphics = this.add.graphics({ fillStyle: { color: fillColor } });
+    graphics.onResizeCallback = function (w, h) {
+        this.setScale(mainBoard.scale);
+        this.y = mainBoard.getBounds().y;
+        this.x = mainBoard.getBounds().x;
+    }
+
+    // HARDCODED
+
+    graphics.fillPoints([gridPoints[32], gridPoints[56], gridPoints[58], gridPoints[50], gridPoints[49], gridPoints[41], gridPoints[33]], true);
+    graphics.fillPoints([gridPoints[4], gridPoints[28], gridPoints[29], gridPoints[5]], true);
+    graphics.fillPoints([gridPoints[36], gridPoints[44], gridPoints[45], gridPoints[37]], true);
+    graphics.fillPoints([gridPoints[10], gridPoints[26], gridPoints[27], gridPoints[11]], true);
+    graphics.fillPoints([gridPoints[34], gridPoints[42], gridPoints[43], gridPoints[35]], true);
+    graphics.fillPoints([gridPoints[38], gridPoints[62], gridPoints[63], gridPoints[39]], true);
+
 
 }
 
