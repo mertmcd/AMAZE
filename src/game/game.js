@@ -227,18 +227,18 @@ function startGame() {
 
     // CONVERTING 1D ARRAY TO 2D ARRAY
 
-        let matrix = [], i, k;
-        let elementsPerArray = gridSize + 1;
+//         let matrix = [], i, k;
+//         let elementsPerArray = gridSize + 1;
 
-        for (i = 0, k = -1; i < gridPoints.length; i++) {
-            if (i % elementsPerArray === 0) {
-                k++;
-                matrix[k] = [];
-            }
+//         for (i = 0, k = -1; i < gridPoints.length; i++) {
+//             if (i % elementsPerArray === 0) {
+//                 k++;
+//                 matrix[k] = [];
+//             }
 
-            matrix[k].push(gridPoints[i]);
-        }
-console.log(matrix);
+//             matrix[k].push(gridPoints[i]);
+//         }
+// console.log(matrix);
 
     // FILLING GRIDS
 
@@ -258,8 +258,6 @@ console.log(matrix);
     graphics.fillPoints([gridPoints[10], gridPoints[26], gridPoints[27], gridPoints[11]], true);
     graphics.fillPoints([gridPoints[34], gridPoints[42], gridPoints[43], gridPoints[35]], true);
     graphics.fillPoints([gridPoints[38], gridPoints[62], gridPoints[63], gridPoints[39]], true);
-
-
 }
 
 
