@@ -1,5 +1,6 @@
 import assetManager from "./assetManager";
 import phaserPlusPlus from "./ppp.js";
+import button from "../utils/button";
 
 if (![true].last) {
     Object.defineProperty(Array.prototype, "last", {
@@ -122,32 +123,66 @@ function startGame() {
     ///// C O D E   B E L O W \\\\\
 
     let darkGray = 0x4E4E58; // Color of the open mainboard
+    let htmlDarkGray = '#4E4E58'; // Color of the text
     let offWhite = 0xFFFFFF; // Color of the closed mainboard
     let lightGray = 0x797B87; // Color of the grids.
     let mustardYellow; // Color of the ball and trail to be painted.
     let boardData = [
-        
-        
-        [1, 0, 0, 1, 0, 1],
-        [1, 1, 1, 1, 1, 1],
-        [0, 0, 0, 1, 0, 1],
-        [1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 0, 0]
+        [1, 1, 1, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1, 1, 0],
+        [1, 0, 0, 1, 0, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1],
+        [0, 0, 0, 1, 0, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 0, 0, 0]
     ];
     let rows = boardData.length;
     let columns = boardData[0].length;
-
+    
     // DRAWING MAINBOARD
 
     points = [10, 0, 200, 0, 210, 200, 0, 200];
     mainBoard = scene.add.polygon(0, 0, points, darkGray).setOrigin(0.5);
 
     mainBoard.onResizeCallback = function (w, h) {
-        let scale = Math.min(w * 0.6 / this.width, h * 0.6 / this.height);
-        this.setScale(scale);
-        this.y = h * 0.5;
-        this.x = w * 0.5;
+        if (!isLandscape) {
+            let scale = Math.min(w * 0.8 / this.width, h * 0.8 / this.height);
+            this.setScale(scale);
+            this.y = h * 0.5;
+            this.x = w * 0.5;
+        } else {
+            let scale = Math.min(w * 0.6 / this.width, h * 0.6 / this.height);
+            this.setScale(scale);
+            this.y = h * 0.5;
+            this.x = w * 0.5;
+        }
+
     }
+   // console.log(mainBoard.displayHeight);
+
+    // TEXT AND BUTTON
+
+    let text = this.add.text(0, 0, 'LEVEL 1', { fontFamily: 'ui_font_1', fontSize: 40, color: htmlDarkGray }).setOrigin(0.5);
+
+    text.onResizeCallback = function () {
+        this.setScale(mainBoard.displayWidth / 3 / this.width);
+        this.x = currentWidth / 2;
+        this.y = mainBoard.getTopCenter().y / 2;
+        console.log(currentWidth);
+        console.log(mainBoard);
+
+    }
+
+
+    let btn = button.addButton(this, 'atlas', 'button', 'PLAY NOW', '#FFFFFF', main.gotoLink);
+
+    btn.onResizeCallback = function () {
+            this.setScale(mainBoard.displayWidth / 2 / this.width);
+            this.y = (mainBoard.getBottomCenter().y + currentHeight) / 2;
+            this.x = currentWidth / 2; 
+        
+    }
+    //button.setInteractive();
 
     //console.log(mainBoard.pathData);
 
@@ -236,7 +271,7 @@ function startGame() {
         }
     }
 
-     console.log(gridPoints);
+    console.log(gridPoints);
 
     // FILLING BOXES
 
@@ -257,7 +292,7 @@ function startGame() {
 
 
             let upperLeftPoint = startPoint;
-           // if (upperLeftPoint === rows + (i * rows)) continue;
+            // if (upperLeftPoint === rows + (i * rows)) continue;
 
 
             let upperRightPoint = upperLeftPoint + rows + 1;
@@ -279,7 +314,6 @@ function startGame() {
                 if (bottomBox)
                     drawInsideBorder(gridPoints[lowerLeftPoint], gridPoints[lowerRightPoint], lightGray);
             }
-
             startPoint += rows + 1;
 
             if (i === 0 && currentBox)
@@ -294,9 +328,9 @@ function startGame() {
                 else
                     drawLeftBorder(gridPoints[upperLeftPoint], gridPoints[lowerLeftPoint], lightGray);
             }
-            
 
-            if (j === columns - 1 && currentBox){
+
+            if (j === columns - 1 && currentBox) {
                 if (i === rows - 1) {
                     gridPoints[lowerRightPoint].y += 4;
                     drawRightBorder(gridPoints[upperRightPoint], gridPoints[lowerRightPoint], lightGray);
@@ -304,14 +338,10 @@ function startGame() {
                 }
                 else
                     drawRightBorder(gridPoints[upperRightPoint], gridPoints[lowerRightPoint], lightGray);
-
             }
-                
-
-
-
         }
     }
+
     function drawInsideBorder(startPoint, endPoint, color) {
         let border = scene.add.line(0, 0, startPoint.x, startPoint.y - 2, endPoint.x, endPoint.y - 2, color).setOrigin(0);
         border.onResizeCallback = function (w, h) {
@@ -330,7 +360,6 @@ function startGame() {
             this.x = mainBoard.getBounds().x;
         }
         border.setLineWidth(2);
-
     }
 
     function drawLeftBorder(startPoint, endPoint, color) {
@@ -353,6 +382,15 @@ function startGame() {
         border.setLineWidth(2);
     }
 
+    let ball = this.add.image(0, 0, 'ball').setOrigin(0);
+
+    ball.onResizeCallback = function (w, h) {
+
+        let scale = Math.min(w / this.width, h / this.height);
+        this.setScale(mainBoard.scale / 6);
+        this.y = lineArrayHorizontal[0].y;
+        this.x = lineArrayVertical[0].x + this.displayWidth / 1.6;
+}
 
 }
 
