@@ -121,25 +121,21 @@ function startGame() {
 
     ///// C O D E   B E L O W \\\\\
 
-    let gridSize = 7; // Not responsive yet due to hardcoding.
-    let gridSizeX = 7;
-    let gridSizeY = 7; // default value of grid size.
     let darkGray = 0x4E4E58; // Color of the open mainboard
     let offWhite = 0xFFFFFF; // Color of the closed mainboard
     let lightGray = 0x797B87; // Color of the grids.
     let mustardYellow; // Color of the ball and trail to be painted.
     let boardData = [
-        [0, 0, 0, 0, 1, 1, 1, 1],
-        [0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0]
-    ]; 
-    
-    // boardData[0]. length yanal uzunluk, boarddata.length dikey u7zunluk verir
+        
+        
+        [1, 0, 0, 1, 0, 1],
+        [1, 1, 1, 1, 1, 1],
+        [0, 0, 0, 1, 0, 1],
+        [1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 0, 0]
+    ];
+    let rows = boardData.length;
+    let columns = boardData[0].length;
 
     // DRAWING MAINBOARD
 
@@ -152,6 +148,8 @@ function startGame() {
         this.y = h * 0.5;
         this.x = w * 0.5;
     }
+
+    //console.log(mainBoard.pathData);
 
     let fixedPathData = [];
     let lineArrayVertical = [];
@@ -175,8 +173,8 @@ function startGame() {
     let startPointTop = fixedPathData[0].x;
     let startPointBottom = fixedPathData[3].x;
 
-    let upperInterval = upperWidth / gridSize;
-    let lowerInterval = lowerWidth / gridSize;
+    let upperInterval = upperWidth / columns;
+    let lowerInterval = lowerWidth / columns;
 
     // Horizontal Line Adjustments
 
@@ -186,16 +184,16 @@ function startGame() {
     let startPointLeft = fixedPathData[0].y;
     let startPointRight = fixedPathData[1].y;
 
-    let sideIntervalY = edgeHeight / gridSize;
-    let sideIntervalX = edgeWidth / gridSize;
+    let sideIntervalY = edgeHeight / rows;
+    let sideIntervalX = edgeWidth / rows;
 
     // DRAWING LINES
 
     // Drawing Vertical Lines
 
-    for (let i = 0; i < gridSize + 1; i++) {
+    for (let i = 0; i < columns + 1; i++) {
 
-        line = this.add.line(0, 0, startPointTop + upperInterval * i, 0, startPointBottom + lowerInterval * i, mainBoard.displayHeight, lightGray).setOrigin(0);
+        line = this.add.line(0, 0, startPointTop + upperInterval * i, 0 - 0.2, startPointBottom + lowerInterval * i, mainBoard.displayHeight + 0.2, lightGray).setOrigin(0);
         line.setLineWidth(0.4);
 
         line.onResizeCallback = function (w, h) {
@@ -206,17 +204,13 @@ function startGame() {
         lineArrayVertical.push(line);
     }
     lineArrayVertical[0].setVisible(false);
-    lineArrayVertical[gridSize].setVisible(false);
-
-    //lineArrayVertical[0].setLineWidth(0.4);
-    //lineArrayVertical[gridSize].setLineWidth(0.4);
-    //console.log(lineArrayVertical);
+    lineArrayVertical[columns].setVisible(false);
 
     // Drawing Horizontal Lines
 
-    for (let i = 0; i < gridSize + 1; i++) {
+    for (let i = 0; i < rows + 1; i++) {
 
-        line = this.add.line(0, 0, startPointTop - sideIntervalX * i, startPointLeft + sideIntervalY * i, startPointTop + upperWidth + sideIntervalX * i, startPointRight + sideIntervalY * i, lightGray).setOrigin(0);
+        line = this.add.line(0, 0, startPointTop - sideIntervalX * i - 0.2, startPointLeft + sideIntervalY * i, startPointTop + upperWidth + sideIntervalX * i + 0.2, startPointRight + sideIntervalY * i, lightGray).setOrigin(0);
         line.setLineWidth(0.4);
 
         line.onResizeCallback = function (w, h) {
@@ -227,27 +221,24 @@ function startGame() {
         lineArrayHorizontal.push(line);
     }
     lineArrayHorizontal[0].setVisible(false);
-    lineArrayHorizontal[gridSize].setVisible(false);
+    lineArrayHorizontal[rows].setVisible(false);
 
-    // lineArrayHorizontal[0].setLineWidth(0.4);
-    // lineArrayHorizontal[gridSize].setLineWidth(false);
-    //console.log(lineArrayHorizontal);
-
-    // SETTING OF THE POINTS OF INTERSECTED LINES
+    // SETTING OF THE POINTS ARRAY OF INTERSECTED LINES
 
     let gridPoints = [];
 
-    for (let i = 0; i < gridSize + 1; i++) {
-        for (let j = 0; j < gridSize + 1; j++) {
+    for (let i = 0; i < columns + 1; i++) {
+        for (let j = 0; j < rows + 1; j++) {
 
             let out = [];
             let intersection = Phaser.Geom.Intersects.LineToLine(lineArrayVertical[i].geom, lineArrayHorizontal[j].geom, out);
             gridPoints.push(out);
         }
     }
-    console.log(gridPoints);
 
-    // FILLING GRIDS
+     console.log(gridPoints);
+
+    // FILLING BOXES
 
     let graphics = this.add.graphics({ fillStyle: { color: offWhite } });
 
@@ -257,21 +248,116 @@ function startGame() {
         this.x = mainBoard.getBounds().x;
     }
 
-    // for( let i = 0; i < boardData.length; i++ ) {
-    //     for (let j =0; j< boardData[i].length; j++) {
-    //         let a = boardData[i][j] // 0 mı 1 mi getirir.
-    //     }
-    // }
+    //console.log(boardData);
+    for (let i = 0; i < rows; i++) {
+        let startPoint = i;
+        for (let j = 0; j < columns; j++) {
+            let currentBox = boardData[i][j];
+            let bottomBox = null;
 
-    // HARDCODED
 
-//     graphics.fillPoints([gridPoints[32], gridPoints[56], gridPoints[58], gridPoints[50], gridPoints[49], gridPoints[41], gridPoints[33]], true);
-//     graphics.fillPoints([gridPoints[4], gridPoints[28], gridPoints[29], gridPoints[5]], true);
-//     graphics.fillPoints([gridPoints[36], gridPoints[44], gridPoints[45], gridPoints[37]], true);
-//     graphics.fillPoints([gridPoints[10], gridPoints[26], gridPoints[27], gridPoints[11]], true);
-//     graphics.fillPoints([gridPoints[34], gridPoints[42], gridPoints[43], gridPoints[35]], true);
-//     graphics.fillPoints([gridPoints[38], gridPoints[62], gridPoints[63], gridPoints[39]], true);
- }
+            let upperLeftPoint = startPoint;
+           // if (upperLeftPoint === rows + (i * rows)) continue;
+
+
+            let upperRightPoint = upperLeftPoint + rows + 1;
+            let lowerLeftPoint = upperLeftPoint + 1;
+            let lowerRightPoint = upperRightPoint + 1;
+
+            // If box is white
+            if (!currentBox) {
+                // color white
+                graphics.fillPoints([gridPoints[upperLeftPoint], gridPoints[upperRightPoint], gridPoints[lowerRightPoint], gridPoints[lowerLeftPoint]], true);
+
+                // draw white line top
+                drawInsideBorder(gridPoints[upperLeftPoint], gridPoints[upperRightPoint], offWhite);
+
+                if (i < rows - 1)
+                    bottomBox = boardData[i + 1][j];
+
+                // draw gray line bottom
+                if (bottomBox)
+                    drawInsideBorder(gridPoints[lowerLeftPoint], gridPoints[lowerRightPoint], lightGray);
+            }
+
+            startPoint += rows + 1;
+
+            if (i === 0 && currentBox)
+                drawTopBorder(gridPoints[upperLeftPoint], gridPoints[upperRightPoint], lightGray);
+
+            if (j === 0 && currentBox) {
+                if (i === rows - 1) {
+                    gridPoints[lowerLeftPoint].y += 4;
+                    drawLeftBorder(gridPoints[upperLeftPoint], gridPoints[lowerLeftPoint], lightGray);
+                    gridPoints[lowerLeftPoint].y -= 4;
+                }
+                else
+                    drawLeftBorder(gridPoints[upperLeftPoint], gridPoints[lowerLeftPoint], lightGray);
+            }
+            
+
+            if (j === columns - 1 && currentBox){
+                if (i === rows - 1) {
+                    gridPoints[lowerRightPoint].y += 4;
+                    drawRightBorder(gridPoints[upperRightPoint], gridPoints[lowerRightPoint], lightGray);
+                    gridPoints[lowerRightPoint].y -= 4;
+                }
+                else
+                    drawRightBorder(gridPoints[upperRightPoint], gridPoints[lowerRightPoint], lightGray);
+
+            }
+                
+
+
+
+        }
+    }
+    function drawInsideBorder(startPoint, endPoint, color) {
+        let border = scene.add.line(0, 0, startPoint.x, startPoint.y - 2, endPoint.x, endPoint.y - 2, color).setOrigin(0);
+        border.onResizeCallback = function (w, h) {
+            this.setScale(mainBoard.scale);
+            this.y = mainBoard.getBounds().y;
+            this.x = mainBoard.getBounds().x;
+        }
+        border.setLineWidth(2);
+    }
+
+    function drawTopBorder(startPoint, endPoint, color) {
+        let border = scene.add.line(0, 0, startPoint.x, startPoint.y - 2, endPoint.x, endPoint.y - 2, color).setOrigin(0);
+        border.onResizeCallback = function (w, h) {
+            this.setScale(mainBoard.scale);
+            this.y = mainBoard.getBounds().y;
+            this.x = mainBoard.getBounds().x;
+        }
+        border.setLineWidth(2);
+
+    }
+
+    function drawLeftBorder(startPoint, endPoint, color) {
+        let border = scene.add.line(0, 0, startPoint.x - 1, startPoint.y - 4, endPoint.x - 1, endPoint.y - 4, color).setOrigin(0);
+        border.onResizeCallback = function (w, h) {
+            this.setScale(mainBoard.scale);
+            this.y = mainBoard.getTopCenter().y;
+            this.x = mainBoard.getTopLeft().x;
+        }
+        border.setLineWidth(2);
+    }
+
+    function drawRightBorder(startPoint, endPoint, color) {
+        let border = scene.add.line(0, 0, startPoint.x + 1, startPoint.y - 4, endPoint.x + 1, endPoint.y - 4, color).setOrigin(0);
+        border.onResizeCallback = function (w, h) {
+            this.setScale(mainBoard.scale);
+            this.y = mainBoard.getBounds().y;
+            this.x = mainBoard.getBounds().x;
+        }
+        border.setLineWidth(2);
+    }
+
+
+}
+
+
+
 
 
 
