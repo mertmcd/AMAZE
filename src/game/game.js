@@ -128,7 +128,12 @@ function startGame() {
     let lightGray = 0x797B87; // Color of the grids.
     let mustardYellow; // Color of the ball and trail to be painted.
     let boardData = [
+        [0, 0, 0, 1, 0, 1, 0],
+        [1, 0, 0, 0, 0, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1],
         [1, 1, 1, 1, 1, 1, 0],
+        [1, 0, 0, 1, 0, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1],
         [1, 1, 1, 1, 1, 1, 0],
         [1, 0, 0, 1, 0, 1, 1],
         [1, 1, 1, 1, 1, 1, 1],
@@ -138,10 +143,16 @@ function startGame() {
     ];
     let rows = boardData.length;
     let columns = boardData[0].length;
-    
+
     // DRAWING MAINBOARD
 
-    points = [10, 0, 200, 0, 210, 200, 0, 200];
+//boardData.length * 30
+    //boardData[0].length * 28.5
+
+    // boardData 7
+    // boardData 3
+   // points = [10, 0, 200, 0, 210, 200, 0, 200];
+    points = [10, 0,    columns * 28.5, 0,     columns * 28.5 + 10, rows * 30,     0, rows * 30];
     mainBoard = scene.add.polygon(0, 0, points, darkGray).setOrigin(0.5);
 
     mainBoard.onResizeCallback = function (w, h) {
@@ -162,7 +173,7 @@ function startGame() {
 
     // TEXT AND BUTTON
 
-    let text = this.add.text(0, 0, 'LEVEL 1', { fontFamily: 'ui_font_1', fontSize: 40, color: htmlDarkGray }).setOrigin(0.5);
+    let text = this.add.text(0, 0, 'LEVEL 1', { fontFamily: 'ui_font_1', fontSize: 40, color: htmlDarkGray, strokeThickness: 3, stroke: htmlDarkGray }).setOrigin(0.5);
 
     text.onResizeCallback = function () {
         this.setScale(mainBoard.displayWidth / 3 / this.width);
@@ -174,7 +185,7 @@ function startGame() {
     }
 
 
-    let btn = button.addButton(this, 'atlas', 'button', 'PLAY NOW', '#FFFFFF', main.gotoLink);
+    let btn = button.addButton(this, 'atlas', 'button', 'PLAY NOW', '#FFFFFF', main.gotoLink, );
 
     btn.onResizeCallback = function () {
             this.setScale(mainBoard.displayWidth / 2 / this.width);

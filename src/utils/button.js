@@ -26,7 +26,7 @@ buttonMaker.addButton = function(
     //let bg = scene.add.image(0,0,"atlas", bgFrame);
     let bg = scene.add.image(0,0, bgTexture, bgFrame);
 
-    let txt = scene.add.text(0, 0, str, {color: textColor, align:'center', fontSize: 64, fontFamily: 'ui-font'}).setOrigin(0.5);
+    let txt = scene.add.text(0, 0, str, {color: textColor, align:'center', fontSize: 64, fontFamily: 'ui_font_1'}).setOrigin(0.5);
 
     if(textData.hasStroke){
         txt.setStroke( textData.strokeColor, textData.strokePower );
