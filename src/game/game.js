@@ -126,7 +126,7 @@ function startGame() {
     let htmlDarkGray = '#4E4E58'; // Color of the text
     let offWhite = 0xFFFFFF; // Color of the closed mainboard
     let lightGray = 0x797B87; // Color of the grids.
-    let mustardYellow; // Color of the ball and trail to be painted.
+    let mustardYellow = 0xF5AC3D; // Color of the ball and trail to be painted.
     let boardData = [
         [0, 0, 0, 1, 0, 1, 0],
         [1, 0, 0, 0, 0, 1, 1],
@@ -173,7 +173,7 @@ function startGame() {
 
     // TEXT AND BUTTON
 
-    let text = this.add.text(0, 0, 'LEVEL 1', { fontFamily: 'ui_font_1', fontSize: 40, color: htmlDarkGray, strokeThickness: 3, stroke: htmlDarkGray }).setOrigin(0.5);
+    let text = this.add.text(0, 0, 'LEVEL 1', { fontFamily: 'ui_font_1', fontSize: 40, color: htmlDarkGray, strokeThickness: 1.5, stroke: htmlDarkGray }).setOrigin(0.5);
 
     text.onResizeCallback = function () {
         this.setScale(mainBoard.displayWidth / 3 / this.width);
@@ -394,6 +394,7 @@ function startGame() {
     }
 
     let ball = this.add.image(0, 0, 'ball').setOrigin(0);
+    ball.setTint(mustardYellow);
 
     ball.onResizeCallback = function (w, h) {
 
