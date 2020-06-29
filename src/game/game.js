@@ -141,10 +141,10 @@ function startGame() {
     let lightGray = 0x797B87; // Color of the grids.
     let mustardYellow = 0xF5AC3D; // Color of the ball and trail to be painted.
     boardData = [
-        [1, 1, 1, 1, 0, 0, 1],
-        [1, 1, 1, 1, 0, 1, 0],
-        [1, 0, 0, 0, 1, 0, 1],
-        [1, 1, 1, 1, 0, 0, 1],
+        [1, 1, 1, 1, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1, 0],
+        [1, 0, 0, 1, 0, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1],
         [0, 0, 0, 1, 0, 1, 1],
         [1, 1, 1, 1, 1, 1, 1],
         [1, 1, 1, 1, 0, 0, 0]
