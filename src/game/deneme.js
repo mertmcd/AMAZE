@@ -1,5 +1,9 @@
+
 // import assetManager from "./assetManager";
 // import phaserPlusPlus from "./ppp.js";
+// import button from "../utils/button";
+// let boxPositions = [];
+// let currentBallPosition = { column: 0, row: 0 };
 
 // if (![true].last) {
 //     Object.defineProperty(Array.prototype, "last", {
@@ -47,9 +51,11 @@
 // let lastWidth, lastHeight, aspectRatio;
 // let currentWidth, currentHeight, squareness, isLandscape;
 // let currentTime, deltaTime;
-// let mainBoard, points, line, main, data;
-
+// let mainBoard, ball, points, main, data;
+// let ballActive = false;
 // let gameData = {};
+// let lineArrayVertical = [];
+// let lineArrayHorizontal = [];
 
 // /** @type {Phaser.Scene} */
 // let scene;
@@ -121,44 +127,65 @@
 
 //     ///// C O D E   B E L O W \\\\\
 
-//     let gridSize = 7; // Not responsive yet due to hardcoding.
-//     // let gridSizeX = 7;
-//     // let gridSizeY = 7; // default value of grid size.
 //     let darkGray = 0x4E4E58; // Color of the open mainboard
+//     let htmlDarkGray = '#4E4E58'; // Color of the text
 //     let offWhite = 0xFFFFFF; // Color of the closed mainboard
 //     let lightGray = 0x797B87; // Color of the grids.
-//     let mustardYellow; // Color of the ball and trail to be painted.
+//     let mustardYellow = 0xF5AC3D; // Color of the ball and trail to be painted.
 //     let boardData = [
-//         [1, 1, 1, 1, 0, 0, 0],
-//         [1, 1, 1, 1, 1, 1, 0],
-//         [1, 0, 0, 1, 0, 1, 1],
 //         [1, 1, 1, 1, 1, 1, 1],
-//         [0, 0, 0, 1, 0, 1, 1],
 //         [1, 1, 1, 1, 1, 1, 1],
-//         [1, 1, 1, 1, 0, 0, 0]
+//         [1, 1, 1, 1, 1, 1, 1],
+//         [1, 1, 1, 1, 1, 1, 1],
+//         [1, 1, 1, 1, 1, 1, 1],
+//         [1, 1, 1, 1, 1, 1, 1],
+//         [1, 1, 1, 1, 1, 1, 1]
 //     ];
+//     let rows = boardData.length;
+//     let columns = boardData[0].length;
 
-//     let gridSizeX = boardData.length;
-//     let gridSizeY = boardData[0].length;
-
-
-//     // boardData[0]. length yanal uzunluk, boarddata.length dikey u7zunluk verir
+    
 
 //     // DRAWING MAINBOARD
 
-//     points = [10, 0, 200, 0, 210, 200, 0, 200];
-//     mainBoard = scene.add.polygon(0, 0, points, darkGray).setOrigin(0.5);
+//     // points = [10, 0, 200, 0, 210, 200, 0, 200];
+
+//     points = [10, 0, columns * 28.5, 0, columns * 28.5 + 10, rows * 30, 0, rows * 30];
+
+//     mainBoard = scene.add.polygon(currentWidth / 2, currentHeight / 2, points, darkGray).setOrigin(0.5);
 
 //     mainBoard.onResizeCallback = function (w, h) {
-//         let scale = Math.min(w * 0.6 / this.width, h * 0.6 / this.height);
+//         let scale = Math.min(w * 0.7 / this.width, h * 0.7 / this.height);
 //         this.setScale(scale);
-//         this.y = h * 0.5;
-//         this.x = w * 0.5;
+
+//         // this.y = h * 0.5;
+//         // this.x = w * 0.5;
+//     }
+
+//     //console.log(mainBoard);
+
+//     // TEXT AND BUTTON
+
+//     let text = this.add.text(0, 0, 'LEVEL 1', { fontFamily: 'ui_font_1', fontSize: 40, color: htmlDarkGray, strokeThickness: 1.5, stroke: htmlDarkGray }).setOrigin(0.5);
+
+//     text.onResizeCallback = function () {
+//         this.setScale(mainBoard.displayWidth / 3 / this.width);
+//         this.x = currentWidth / 2;
+//         this.y = mainBoard.getTopCenter().y / 2;
+//     }
+
+
+//     let btn = button.addButton(this, 'atlas', 'button', 'PLAY NOW', '#FFFFFF', main.gotoLink,);
+
+//     btn.onResizeCallback = function () {
+//         this.setScale(mainBoard.displayWidth / 2 / this.width);
+//         this.y = (mainBoard.getBottomCenter().y + currentHeight) / 2;
+//         this.x = currentWidth / 2;
+
 //     }
 
 //     let fixedPathData = [];
-//     let lineArrayVertical = [];
-//     let lineArrayHorizontal = [];
+
 
 //     for (let i = 0; i < mainBoard.pathData.length - 2; i += 2) {
 
@@ -178,8 +205,8 @@
 //     let startPointTop = fixedPathData[0].x;
 //     let startPointBottom = fixedPathData[3].x;
 
-//     let upperInterval = upperWidth / gridSizeY;
-//     let lowerInterval = lowerWidth / gridSizeY;
+//     let upperInterval = upperWidth / columns;
+//     let lowerInterval = lowerWidth / columns;
 
 //     // Horizontal Line Adjustments
 
@@ -189,68 +216,70 @@
 //     let startPointLeft = fixedPathData[0].y;
 //     let startPointRight = fixedPathData[1].y;
 
-//     let sideIntervalY = edgeHeight / gridSizeX;
-//     let sideIntervalX = edgeWidth / gridSizeX;
+//     let sideIntervalY = edgeHeight / rows;
+//     let sideIntervalX = edgeWidth / rows;
 
 //     // DRAWING LINES
 
 //     // Drawing Vertical Lines
 
-//     for (let i = 0; i < gridSizeY + 1; i++) {
+//     for (let i = 0; i < columns + 1; i++) {
 
-//         line = this.add.line(0, 0, startPointTop + upperInterval * i, 0, startPointBottom + lowerInterval * i, mainBoard.displayHeight, lightGray).setOrigin(0);
+//         let line = this.add.line(startPointTop + upperInterval * i, mainBoard.getTopCenter().y, startPointTop + upperInterval * i, 0 - 0.2, startPointBottom + lowerInterval * i, mainBoard.displayHeight + 0.2, lightGray).setOrigin(0);
 //         line.setLineWidth(0.4);
+//        // console.log(line.width, i);
 
 //         line.onResizeCallback = function (w, h) {
 //             this.setScale(mainBoard.scale);
-//             this.y = mainBoard.getBounds().y;
-//             this.x = mainBoard.getBounds().x;
+//             // this.y = mainBoard.getBounds().y;
+//             // this.x = mainBoard.getBounds().x;
+//            // console.log(mainBoard.getBounds().x)
 //         }
 //         lineArrayVertical.push(line);
+        
 //     }
-//     lineArrayVertical[0].setVisible(false);
-//     lineArrayVertical[gridSizeY].setVisible(false);
-
-//     //lineArrayVertical[0].setLineWidth(0.4);
-//     //lineArrayVertical[gridSize].setLineWidth(0.4);
 //     //console.log(lineArrayVertical);
+//     lineArrayVertical[0].setVisible(true);
+//     lineArrayVertical[columns].setVisible(true);
 
 //     // Drawing Horizontal Lines
 
-//     for (let i = 0; i < gridSizeX + 1; i++) {
+//     for (let i = 0; i < rows + 1; i++) {
 
-//         line = this.add.line(0, 0, startPointTop - sideIntervalX * i, startPointLeft + sideIntervalY * i, startPointTop + upperWidth + sideIntervalX * i, startPointRight + sideIntervalY * i, lightGray).setOrigin(0);
+//         let line = this.add.line(startPointTop + sideIntervalX * i, startPointLeft + i * sideIntervalY, startPointTop - sideIntervalX * i - 0.2, startPointLeft + sideIntervalY * i, startPointTop + upperWidth + sideIntervalX * i + 0.2, startPointRight + sideIntervalY * i, lightGray).setOrigin(0);
 //         line.setLineWidth(0.4);
 
 //         line.onResizeCallback = function (w, h) {
 //             this.setScale(mainBoard.scale);
-//             this.y = mainBoard.getBounds().y;
-//             this.x = mainBoard.getBounds().x;
+//             // this.y = mainBoard.getBounds().y;
+//             // this.x = mainBoard.getBounds().x;
 //         }
+//         line.onResizeCallback(scene.lastWidth, scene.lastHeight);
 //         lineArrayHorizontal.push(line);
+
+//         console.log(lineArrayHorizontal[i].geom.x1)
 //     }
+    
 //     lineArrayHorizontal[0].setVisible(false);
-//     lineArrayHorizontal[gridSizeX].setVisible(false);
+//     lineArrayHorizontal[rows].setVisible(false);
 
-//     // lineArrayHorizontal[0].setLineWidth(0.4);
-//     // lineArrayHorizontal[gridSize].setLineWidth(false);
-//     //console.log(lineArrayHorizontal);
 
-//     // SETTING OF THE POINTS OF INTERSECTED LINES
+//     // SETTING OF THE POINTS ARRAY OF INTERSECTED LINES
 
 //     let gridPoints = [];
 
-//     for (let i = 0; i < gridSizeY + 1; i++) {
-//         for (let j = 0; j < gridSizeX + 1; j++) {
+//     for (let i = 0; i < columns + 1; i++) {
+//         for (let j = 0; j < rows + 1; j++) {
 
 //             let out = [];
 //             let intersection = Phaser.Geom.Intersects.LineToLine(lineArrayVertical[i].geom, lineArrayHorizontal[j].geom, out);
 //             gridPoints.push(out);
 //         }
 //     }
-//     //console.log(gridPoints);
 
-//     // FILLING GRIDS
+//     console.log(gridPoints);
+
+//     // FILLING BOXES
 
 //     let graphics = this.add.graphics({ fillStyle: { color: offWhite } });
 
@@ -260,21 +289,25 @@
 //         this.x = mainBoard.getBounds().x;
 //     }
 
-//     // let startPoint = 0;
-//     for( let i = 0; i < boardData.length; i++ ) {
+//     //console.log(boardData);
+//     for (let i = 0; i < rows; i++) {
 //         let startPoint = i;
-//         for (let j =0; j< boardData[i].length; j++) {
-//             let currentBox = boardData[i][j] // 0 mı 1 mi getirir.
+//         let row = [];
+//         for (let j = 0; j < columns; j++) {
+//             let currentBox = boardData[i][j];
 //             let bottomBox = null;
 
-//             // if (startPoint === dikey) continue;
 
 //             let upperLeftPoint = startPoint;
-//             if (upperLeftPoint === boardData.length + (i * 8)) continue;
+//             // if (upperLeftPoint === rows + (i * rows)) continue;
 
-//             let upperRightPoint = upperLeftPoint + boardData.length + 1;
+
+//             let upperRightPoint = upperLeftPoint + rows + 1;
 //             let lowerLeftPoint = upperLeftPoint + 1;
-//             let lowerRightPoint = lowerLeftPoint + boardData.length + 1;
+//             let lowerRightPoint = upperRightPoint + 1;
+
+//             let box = { upperLeftPoint: gridPoints[upperLeftPoint], upperRightPoint: gridPoints[upperRightPoint], lowerLeftPoint: gridPoints[lowerLeftPoint], lowerRightPoint: gridPoints[lowerRightPoint] }
+//             row.push(box);
 
 //             // If box is white
 //             if (!currentBox) {
@@ -282,43 +315,209 @@
 //                 graphics.fillPoints([gridPoints[upperLeftPoint], gridPoints[upperRightPoint], gridPoints[lowerRightPoint], gridPoints[lowerLeftPoint]], true);
 
 //                 // draw white line top
-//                 drawBorder(gridPoints[upperLeftPoint], gridPoints[upperRightPoint], offWhite);
+//                 drawInsideBorder(gridPoints[upperLeftPoint], gridPoints[upperRightPoint], offWhite);
 
-//                 if (i < boardData.length - 1) bottomBox = boardData[i + 1][j];
+//                 if (i < rows - 1)
+//                     bottomBox = boardData[i + 1][j];
 
 //                 // draw gray line bottom
-//                 if (bottomBox){
-//                     drawBorder(gridPoints[lowerLeftPoint], gridPoints[lowerRightPoint], lightGray);
+//                 if (bottomBox)
+//                     drawInsideBorder(gridPoints[lowerLeftPoint], gridPoints[lowerRightPoint], lightGray);
+//             }
+//             startPoint += rows + 1;
+
+//             if (i === 0 && currentBox)
+//                 drawTopBorder(gridPoints[upperLeftPoint], gridPoints[upperRightPoint], lightGray);
+
+//             if (j === 0 && currentBox) {
+//                 if (i === rows - 1) {
+//                     gridPoints[lowerLeftPoint].y += 4;
+//                     drawLeftBorder(gridPoints[upperLeftPoint], gridPoints[lowerLeftPoint], lightGray);
+//                     gridPoints[lowerLeftPoint].y -= 4;
 //                 }
-
-
-//             }
-//             startPoint = startPoint + boardData.length + 1;
-
-//             if (i === 0 && currentBox){
-//                 drawBorder(gridPoints[upperLeftPoint], gridPoints[upperRightPoint], lightGray);
+//                 else
+//                     drawLeftBorder(gridPoints[upperLeftPoint], gridPoints[lowerLeftPoint], lightGray);
 //             }
 
+
+//             if (j === columns - 1 && currentBox) {
+//                 if (i === rows - 1) {
+//                     gridPoints[lowerRightPoint].y += 4;
+//                     drawRightBorder(gridPoints[upperRightPoint], gridPoints[lowerRightPoint], lightGray);
+//                     gridPoints[lowerRightPoint].y -= 4;
+//                 }
+//                 else
+//                     drawRightBorder(gridPoints[upperRightPoint], gridPoints[lowerRightPoint], lightGray);
+//             }
 //         }
+//         boxPositions.push(row);
 //     }
-//  }
 
-//  function drawBorder(startPoint, endPoint, color){
-//     let border = scene.add.line(0, 0, startPoint.x, startPoint.y - 2, endPoint.x, endPoint.y - 2, color).setOrigin(0);
-//     border.onResizeCallback = function (w, h) {
-//         this.setScale(mainBoard.scale);
-//         this.y = mainBoard.getBounds().y;
-//         this.x = mainBoard.getBounds().x;
-//     };
-//     border.setLineWidth(2);
-//  }
+//     function drawInsideBorder(startPoint, endPoint, color) {
+//         let border = scene.add.line(0, 0, startPoint.x, startPoint.y - 2, endPoint.x, endPoint.y - 2, color).setOrigin(0);
+//         border.onResizeCallback = function (w, h) {
+//             this.setScale(mainBoard.scale);
+//             this.y = mainBoard.getBounds().y;
+//             this.x = mainBoard.getBounds().x;
+//         }
+//         border.setLineWidth(2);
+//     }
 
+//     function drawTopBorder(startPoint, endPoint, color) {
+//         let border = scene.add.line(0, 0, startPoint.x, startPoint.y - 2, endPoint.x, endPoint.y - 2, color).setOrigin(0);
+//         border.onResizeCallback = function (w, h) {
+//             this.setScale(mainBoard.scale);
+//             this.y = mainBoard.getBounds().y;
+//             this.x = mainBoard.getBounds().x;
+//         }
+//         border.setLineWidth(2);
+//     }
+
+//     function drawLeftBorder(startPoint, endPoint, color) {
+//         let border = scene.add.line(0, 0, startPoint.x - 1, startPoint.y - 4, endPoint.x - 1, endPoint.y - 4, color).setOrigin(0);
+//         border.onResizeCallback = function (w, h) {
+//             this.setScale(mainBoard.scale);
+//             this.y = mainBoard.getTopCenter().y;
+//             this.x = mainBoard.getTopLeft().x;
+//         }
+//         border.setLineWidth(2);
+//     }
+
+//     function drawRightBorder(startPoint, endPoint, color) {
+//         let border = scene.add.line(0, 0, startPoint.x + 1, startPoint.y - 4, endPoint.x + 1, endPoint.y - 4, color).setOrigin(0);
+//         border.onResizeCallback = function (w, h) {
+//             this.setScale(mainBoard.scale);
+//             this.y = mainBoard.getBounds().y;
+//             this.x = mainBoard.getBounds().x;
+//         }
+//         border.setLineWidth(2);
+//     }
+
+//     ball = this.add.image(0, 0, 'ball').setOrigin(0.5);
+//     ball.setTint(mustardYellow);
+
+//     ball.onResizeCallback = function (w, h) {
+
+//         let scale = Math.min(w / this.width, h / this.height);
+//         this.setScale(mainBoard.scale / 6);
+//         this.y = lineArrayHorizontal[3].y + this.displayHeight / 2;
+//         this.x = lineArrayVertical[3].x + this.displayWidth;
+
+//         ball.x = mainBoard.x - mainBoard.width * mainBoard.scale / 2 + this.displayWidth / 2 + upperInterval;
+//         ball.y = mainBoard.y - mainBoard.height * mainBoard.scale / 2 + this.displayHeight / 2;
+//        // console.log(scene.lastWidth, "scene.lastWidth");
+//        // console.log(lineArrayHorizontal[0].x, "lineArrayHorizontal[0]");
+//         setTimeout(() => {
+//            // console.log(lineArrayHorizontal[7].x, "lineArrayHorizontal[7]");
+//         }, 1000)
+//     }
+
+// }
+
+// function moveBall(direction) {
+
+//     let targetPosition = { x: ball.x, y: ball.y }
+
+//     switch (direction) {
+
+//         case "left":
+//             for (let i = 0; i < 7; i++) {
+
+//             }
+//             targetPosition.x = 0;
+//             targetPosition.y = ball.y
+//             // cell boyama
+//             break;
+
+//         case "right":
+//             let position = boxPositions[currentBallPosition.row][boxPositions[0].length - 1];
+//             // let position = mainBoard.getTopRight();
+
+//             targetPosition.x = position.upperRightPoint['x'];
+//             targetPosition.y = position.upperRightPoint['y'];
+//             console.log("x: ", targetPosition.x);
+//             console.log("y: ", targetPosition.y);
+//             // cell boyama
+
+//             break;
+
+//         case "up":
+//             targetPosition.x = ball.x;
+//             targetPosition.y = boxPositions[0][0].upperLeftPoint['y'];
+//             // cell boyama
+//             break;
+
+//         case "down":
+//             targetPosition.x = ball.x;
+//             targetPosition.y = 200;
+//             // cell boyama
+//             break;
+
+//         default:
+//         // code block
+//     }
+
+//     let tween = scene.tweens.add({
+//         targets: ball,
+//         x: targetPosition.x,
+//         y: targetPosition.y,
+//         onComplete: function () {
+//             ballActive = false;
+//         },
+//         ease: 'Linear',
+//         duration: 100,
+//         repeat: 0,
+//         yoyo: false
+//     });
+
+//     // function mert (x, y) {
+//     //     x = currentWidth / 8;
+//     //     y = currentHeight / 10;
+//     // }
+
+
+// }
 
 // function updateGame(time, delta) {
+
 //     currentTime = time;
 //     deltaTime = delta;
 
 //     main.update();
+
+//     let pointer = this.input.activePointer;
+
+
+//     if (pointer.isDown) {
+//         // console.log(pointer);
+//         console.log("clicked x: ", pointer.x);
+//         console.log("clicked y: ", pointer.y);
+
+//         if (pointer.downX + 10 - pointer.x < 0 && !ballActive) {
+//             ballActive = true;
+//             moveBall('right');
+//             console.log('right');
+//         }
+//         else if (pointer.downX - 10 - pointer.x > 0 && !ballActive) {
+//             ballActive = true;
+//             moveBall('left');
+//             console.log('left');
+
+//         }
+//         else if (pointer.downY + 50 - pointer.y > 0 && !ballActive && pointer.downY !== pointer.y) {
+//             ballActive = true;
+//             moveBall('up');
+//             console.log('up');
+
+//         }
+//         else if (pointer.downY - 50 - pointer.y < 0 && !ballActive && pointer.downY !== pointer.y) {
+//             ballActive = true;
+//             moveBall('down');
+//             console.log('down');
+
+//         }
+
+//     }
 // }
 
 // function resizeAll(w, h) {
@@ -399,3 +598,8 @@
 //     gameScene,
 //     uiScene
 // };
+
+
+// https://rexrainbow.github.io/phaser3-rex-notes/docs/site/particles/ konfetiler
+
+    

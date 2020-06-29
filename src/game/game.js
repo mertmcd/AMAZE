@@ -53,6 +53,17 @@ let ballActive = false;
 let gameData = {};
 let lineArrayVertical = [];
 let lineArrayHorizontal = [];
+let gridPoints = [];
+let rows;
+let columns;
+let currentBox;
+let bottomBox;
+let targetPosition = {};
+let boxPositions = [];
+let ballPosition = [];
+let boardData;
+
+let currentBallPosition = { column: 0, row: 0 };
 
 /** @type {Phaser.Scene} */
 let scene;
@@ -124,22 +135,22 @@ function startGame() {
 
     ///// C O D E   B E L O W \\\\\
 
-    let darkGray = 0x4E4E58; // Color of the open mainboard
+    let darkGray = 0x4E4E58; // Color of the ball path
     let htmlDarkGray = '#4E4E58'; // Color of the text
-    let offWhite = 0xFFFFFF; // Color of the closed mainboard
+    let offWhite = 0xFFFFFF; // Color of the closed paths
     let lightGray = 0x797B87; // Color of the grids.
     let mustardYellow = 0xF5AC3D; // Color of the ball and trail to be painted.
-    let boardData = [
+    boardData = [
+        [1, 1, 1, 1, 0, 0, 1],
+        [1, 1, 1, 1, 0, 1, 0],
+        [1, 0, 0, 0, 1, 0, 1],
+        [1, 1, 1, 1, 0, 0, 1],
+        [0, 0, 0, 1, 0, 1, 1],
         [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1]
+        [1, 1, 1, 1, 0, 0, 0]
     ];
-    let rows = boardData.length;
-    let columns = boardData[0].length;
+    rows = boardData.length;
+    columns = boardData[0].length;
 
     // DRAWING MAINBOARD
 
@@ -148,6 +159,7 @@ function startGame() {
     points = [10, 0, columns * 28.5, 0, columns * 28.5 + 10, rows * 30, 0, rows * 30];
 
     mainBoard = scene.add.polygon(0, 0, points, darkGray).setOrigin(0.5);
+    //console.log(mainBoard);
 
     mainBoard.onResizeCallback = function (w, h) {
         let scale = Math.min(w * 0.7 / this.width, h * 0.7 / this.height);
@@ -156,7 +168,6 @@ function startGame() {
         this.x = w * 0.5;
     }
 
-    //console.log(mainBoard);
 
     // TEXT AND BUTTON
 
@@ -213,6 +224,7 @@ function startGame() {
     let sideIntervalY = edgeHeight / rows;
     let sideIntervalX = edgeWidth / rows;
 
+
     // DRAWING LINES
 
     // Drawing Vertical Lines
@@ -221,18 +233,18 @@ function startGame() {
 
         let line = this.add.line(0, 0, startPointTop + upperInterval * i, 0 - 0.2, startPointBottom + lowerInterval * i, mainBoard.displayHeight + 0.2, lightGray).setOrigin(0);
         line.setLineWidth(0.4);
-       // console.log(line.width, i);
+
 
         line.onResizeCallback = function (w, h) {
             this.setScale(mainBoard.scale);
-            this.y = mainBoard.getBounds().y;
+            this.y = mainBoard.getTopLeft().y;
             this.x = mainBoard.getBounds().x;
-           // console.log(mainBoard.getBounds().x)
+
         }
         lineArrayVertical.push(line);
-        
+
     }
-    //console.log(lineArrayVertical);
+    // console.log(lineArrayVertical);0
     lineArrayVertical[0].setVisible(false);
     lineArrayVertical[columns].setVisible(false);
 
@@ -240,27 +252,26 @@ function startGame() {
 
     for (let i = 0; i < rows + 1; i++) {
 
+
         let line = this.add.line(0, 0, startPointTop - sideIntervalX * i - 0.2, startPointLeft + sideIntervalY * i, startPointTop + upperWidth + sideIntervalX * i + 0.2, startPointRight + sideIntervalY * i, lightGray).setOrigin(0);
         line.setLineWidth(0.4);
 
         line.onResizeCallback = function (w, h) {
             this.setScale(mainBoard.scale);
+
             this.y = mainBoard.getBounds().y;
             this.x = mainBoard.getBounds().x;
         }
         line.onResizeCallback(scene.lastWidth, scene.lastHeight);
         lineArrayHorizontal.push(line);
 
-        console.log(lineArrayHorizontal[i].geom.x1)
     }
-    
+
     lineArrayHorizontal[0].setVisible(false);
     lineArrayHorizontal[rows].setVisible(false);
 
 
     // SETTING OF THE POINTS ARRAY OF INTERSECTED LINES
-
-    let gridPoints = [];
 
     for (let i = 0; i < columns + 1; i++) {
         for (let j = 0; j < rows + 1; j++) {
@@ -270,9 +281,7 @@ function startGame() {
             gridPoints.push(out);
         }
     }
-
-    //console.log(gridPoints);
-
+    console.log(gridPoints);
     // FILLING BOXES
 
     let graphics = this.add.graphics({ fillStyle: { color: offWhite } });
@@ -287,8 +296,8 @@ function startGame() {
     for (let i = 0; i < rows; i++) {
         let startPoint = i;
         for (let j = 0; j < columns; j++) {
-            let currentBox = boardData[i][j];
-            let bottomBox = null;
+            currentBox = boardData[i][j];
+            bottomBox = null;
 
 
             let upperLeftPoint = startPoint;
@@ -340,6 +349,7 @@ function startGame() {
                     drawRightBorder(gridPoints[upperRightPoint], gridPoints[lowerRightPoint], lightGray);
             }
         }
+
     }
 
     function drawInsideBorder(startPoint, endPoint, color) {
@@ -389,55 +399,66 @@ function startGame() {
 
         let scale = Math.min(w / this.width, h / this.height);
         this.setScale(mainBoard.scale / 6);
-        this.y = lineArrayHorizontal[3].y + this.displayHeight / 2;
-        this.x = lineArrayVertical[3].x + this.displayWidth;
-
-        ball.x = mainBoard.x - mainBoard.width * mainBoard.scale / 2 + this.displayWidth / 2 + upperInterval;
-        ball.y = mainBoard.y - mainBoard.height * mainBoard.scale / 2 + this.displayHeight / 2;
-       // console.log(scene.lastWidth, "scene.lastWidth");
-       // console.log(lineArrayHorizontal[0].x, "lineArrayHorizontal[0]");
-        setTimeout(() => {
-           // console.log(lineArrayHorizontal[7].x, "lineArrayHorizontal[7]");
-        }, 1000)
+        this.x = mainBoard.x - mainBoard.displayWidth / 2 + (gridPoints[0].x * mainBoard.scale + gridPoints[8].x * mainBoard.scale) / 2;
+        this.y = mainBoard.y - mainBoard.displayHeight / 2 + (gridPoints[1].y * mainBoard.scale + gridPoints[0].y * mainBoard.scale) / 2;
     }
-
 }
+
 
 function moveBall(direction) {
 
-    let targetPosition = { x: ball.x, y: ball.y }
+    targetPosition = { x: ball.x, y: ball.y }
 
     switch (direction) {
 
         case "left":
-            for (let i = 0; i < 7; i++) {
 
-            }
-            targetPosition.x = 0
-            targetPosition.y = ball.y
-            // cell boyama
+
+            targetPosition.x = mainBoard.x - mainBoard.displayWidth / 2 + (gridPoints[0].x * mainBoard.scale + gridPoints[8].x * mainBoard.scale) / 2;
+            targetPosition.y = ball.y;
+
+
             break;
 
         case "right":
-            targetPosition.x = 400,
-                targetPosition.y = ball.y
-            // cell boyama
-            break;
 
-        case "up":
-            targetPosition.x = ball.x,
-                targetPosition.y = 0
-            // cell boyama
+            for (let i = 0; i < 1; i++) {
+                for (let j = 0; j < boardData[0].length; j++) {
+
+                    if (boardData[i][j] === 1) {
+
+                        targetPosition.x = mainBoard.x - mainBoard.displayWidth / 2 + (gridPoints[j * (boardData[i].length + 1)].x * mainBoard.scale + gridPoints[(j + 1) * (boardData[i].length + 1)].x * mainBoard.scale) / 2;
+                        targetPosition.y = ball.y;
+                        let index1 = i;
+                        let index2 = j;
+                        ballPosition = [];
+                        ballPosition = boardData[i][j];
+
+                    } else {
+                        
+                        break;
+                    }
+                }
+            }
+
             break;
 
         case "down":
-            targetPosition.x = ball.x,
-                targetPosition.y = 0
-            // cell boyama
+
+            targetPosition.x = ball.x;
+            targetPosition.y = mainBoard.y - mainBoard.displayHeight / 2 + (gridPoints[38].y * mainBoard.scale + gridPoints[39].y * mainBoard.scale) / 2;
+
+
+            break;
+
+        case "up":
+
+            targetPosition.x = ball.x;
+            targetPosition.y = mainBoard.y - mainBoard.displayHeight / 2 + (gridPoints[32].y * mainBoard.scale + gridPoints[33].y * mainBoard.scale) / 2;
+
             break;
 
         default:
-        // code block
     }
 
     let tween = scene.tweens.add({
@@ -452,11 +473,6 @@ function moveBall(direction) {
         repeat: 0,
         yoyo: false
     });
-
-    // function mert (x, y) {
-    //     x = currentWidth / 8;
-    //     y = currentHeight / 10;
-    // }
 
 
 }
@@ -474,28 +490,27 @@ function updateGame(time, delta) {
     if (pointer.isDown) {
         console.log(pointer);
 
-        if (pointer.downX + 10 - pointer.x < 0 && !ballActive) {
+        if (pointer.downX + 100 - pointer.x < 0 && !ballActive) {
+
             ballActive = true;
             moveBall('right');
             console.log('right');
+
         }
-        else if (pointer.downX - 10 - pointer.x > 0 && !ballActive) {
+        else if (pointer.downX - 100 - pointer.x > 0 && !ballActive) {
             ballActive = true;
             moveBall('left');
             console.log('left');
-
         }
-        else if (pointer.downY + 10 - pointer.y > 0 && !ballActive) {
+        else if (pointer.downY + 100 - pointer.y > 0 && !ballActive) {
             ballActive = true;
             moveBall('up');
             console.log('up');
-
         }
-        else if (pointer.downY - 10 - pointer.y < 0 && !ballActive) {
+        else if (pointer.downY - 100 - pointer.y < 0 && !ballActive) {
             ballActive = true;
             moveBall('down');
             console.log('down');
-
         }
 
     }
