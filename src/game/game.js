@@ -50,7 +50,7 @@ let currentWidth, currentHeight, squareness, isLandscape;
 let currentTime, deltaTime;
 let mainBoard, triangle, ball, points, main, data;
 let ballActive = false;
-let graphics;
+let fillBox;
 let fillPath;
 let gameData = {};
 let lineArrayVertical = [];
@@ -64,6 +64,11 @@ let targetPosition = {};
 let boxPositions = [];
 let boardData;
 let currentBallPosition = {column: 0, row: 0};
+let darkGray = 0x4e4e58; // Color of the ball path
+let htmlDarkGray = "#4E4E58"; // Color of the text
+let offWhite = 0xffffff; // Color of the closed paths
+let lightGray = 0x797b87; // Color of the grids.
+let mustardYellow = 0xf5ac3d; // Color of the ball and trail to be painted.
 
 /** @type {Phaser.Scene} */
 let scene;
@@ -135,11 +140,6 @@ function startGame() {
 
   ///// C O D E   B E L O W \\\\\
 
-  let darkGray = 0x4e4e58; // Color of the ball path
-  let htmlDarkGray = "#4E4E58"; // Color of the text
-  let offWhite = 0xffffff; // Color of the closed paths
-  let lightGray = 0x797b87; // Color of the grids.
-  let mustardYellow = 0xf5ac3d; // Color of the ball and trail to be painted.
   boardData = [
     [1, 1, 1, 1, 0, 0, 0],
     [1, 1, 1, 1, 1, 1, 0],
@@ -245,7 +245,7 @@ function startGame() {
 
   for (let i = 0; i < columns + 1; i++) {
     let line = this.add
-      .line(0, 0, startPointTop + upperInterval * i, 0 - 0.2, startPointBottom + lowerInterval * i, mainBoard.displayHeight + 0.2, lightGray)
+      .line(0, 0, startPointTop + upperInterval * i, -0.2, startPointBottom + lowerInterval * i, mainBoard.displayHeight + 0.2, lightGray)
       .setDepth(1)
       .setOrigin(0);
     line.setLineWidth(0.3);
@@ -292,13 +292,14 @@ function startGame() {
       gridPoints.push(out);
     }
   }
+
   //console.log(gridPoints);
 
   // FILLING BOXES
 
-  graphics = this.add.graphics({fillStyle: {color: offWhite}}).setDepth(1);
+  fillBox = this.add.graphics({fillStyle: {color: offWhite}}).setDepth(1);
 
-  graphics.onResizeCallback = function (w, h) {
+  fillBox.onResizeCallback = function (w, h) {
     this.setScale(mainBoard.scale);
     this.y = mainBoard.getBounds().y;
     this.x = mainBoard.getBounds().x;
@@ -319,10 +320,8 @@ function startGame() {
     for (let j = 0; j < columns; j++) {
       currentBox = boardData[i][j];
       bottomBox = null;
-      console.log(currentBox);
 
       let upperLeftPoint = startPoint;
-      // if (upperLeftPoint === rows + (i * rows)) continue;
 
       let upperRightPoint = upperLeftPoint + rows + 1;
       let lowerLeftPoint = upperLeftPoint + 1;
@@ -341,7 +340,7 @@ function startGame() {
       // If box is white
       if (!currentBox) {
         // color white
-        graphics.fillPoints([gridPoints[upperLeftPoint], gridPoints[upperRightPoint], gridPoints[lowerRightPoint], gridPoints[lowerLeftPoint]], true);
+        fillBox.fillPoints([gridPoints[upperLeftPoint], gridPoints[upperRightPoint], gridPoints[lowerRightPoint], gridPoints[lowerLeftPoint]], true);
 
         // draw white line top
         drawInsideBorder(gridPoints[upperLeftPoint], gridPoints[upperRightPoint], offWhite);
@@ -436,18 +435,6 @@ function startGame() {
     // this.x = mainBoard.x - mainBoard.displayWidth / 2 + (gridPoints[0].x * mainBoard.scale + gridPoints[8].x * mainBoard.scale) / 2;
     // this.y = mainBoard.y - mainBoard.displayHeight / 2 + (gridPoints[1].y * mainBoard.scale + gridPoints[0].y * mainBoard.scale) / 2;
   };
-
-  //triangle = this.add.triangle(0, 0, 200, 150, 480, 400, 210, 370, mustardYellow).setOrigin(0.5).setDepth(2);
-
-  //   triangle = scene.add.polygon(0, 0, mert, lightGray).setOrigin(0.5);
-
-  //   triangle.onResizeCallback = function (w, h) {
-  //     let scale = Math.min(w / this.width, h / this.height);
-  //     this.setScale(scale);
-  //     this.y = currentWidth / 3;
-  //     this.x = currentHeight / 2;
-  //   };
-  //   console.log(triangle);
 }
 
 function moveBall(direction) {
@@ -489,7 +476,7 @@ function moveBall(direction) {
 
       for (let i = 0; i < row.length; i++) {
         let box = row[i];
-        boxCount++;
+        // boxCount++;
         if (box.value === 0) {
           targetIndex = i - 1;
           break;
@@ -565,8 +552,10 @@ function moveBall(direction) {
 
   let tri;
   let initialPos = {x: ball.getCenter().x, y: ball.getCenter().y + ball.displayHeight / 2};
+  let initialPos2 = {x: ball.getCenter().x + ball.displayHeight / 2, y: ball.getCenter().y};
 
   scene.tweens.killTweensOf(ball);
+
   let tween = scene.tweens.add({
     targets: ball,
     x: targetPosition.x,
@@ -574,17 +563,23 @@ function moveBall(direction) {
 
     onStart: function () {
       ball.setDepth(5);
-      tri = scene.add.triangle(0, 0, ball.getCenter().x, ball.getCenter().y, ball.getTopCenter().x, ball.getTopCenter().y, ball.getBottomCenter().x, ball.getBottomCenter().y, 0xffffff).setOrigin(0.5).setDepth(2);
+      if (direction === "left" || direction === "right")
+        tri = scene.add.triangle(0, 0, ball.getCenter().x, ball.getCenter().y, ball.getTopCenter().x, ball.getTopCenter().y, ball.getBottomCenter().x, ball.getBottomCenter().y, offWhite).setOrigin(0.5).setDepth(2);
+      else tri = scene.add.triangle(0, 0, ball.getCenter().x, ball.getCenter().y, ball.getRightCenter().x, ball.getRightCenter().y, ball.getLeftCenter().x, ball.getLeftCenter().y, offWhite).setOrigin(0.5).setDepth(2);
     },
+
     onUpdate: function () {
-      tri.setTo(initialPos.x, initialPos.y, ball.getCenter().x, ball.getCenter().y + ball.displayHeight, ball.getCenter().x, ball.getCenter().y);
+      if (direction === "left" || direction === "right") tri.setTo(initialPos.x, initialPos.y, ball.getCenter().x, ball.getCenter().y + ball.displayHeight, ball.getCenter().x, ball.getCenter().y);
+      else tri.setTo(initialPos2.x, initialPos2.y, ball.getCenter().x + ball.displayHeight, ball.getCenter().y, ball.getCenter().x, ball.getCenter().y);
     },
+
     onComplete: function () {
       ballActive = false;
       if (direction === "left" || direction === "right") currentBallPosition.column = targetIndex;
       else currentBallPosition.row = targetIndex;
       tri.destroy();
     },
+
     ease: "Linear",
     duration: boxCount * dur,
     repeat: 0,
