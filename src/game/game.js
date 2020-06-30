@@ -50,6 +50,8 @@ let currentWidth, currentHeight, squareness, isLandscape;
 let currentTime, deltaTime;
 let mainBoard, ball, points, main, data;
 let ballActive = false;
+let graphics;
+let fillPath;
 let gameData = {};
 let lineArrayVertical = [];
 let lineArrayHorizontal = [];
@@ -60,9 +62,7 @@ let currentBox;
 let bottomBox;
 let targetPosition = {};
 let boxPositions = [];
-let ballPosition = [];
 let boardData;
-
 let currentBallPosition = { column: 0, row: 0 };
 
 /** @type {Phaser.Scene} */
@@ -149,6 +149,7 @@ function startGame() {
         [1, 1, 1, 1, 1, 1, 1],
         [1, 1, 1, 1, 0, 0, 0]
     ];
+
     rows = boardData.length;
     columns = boardData[0].length;
 
@@ -281,12 +282,21 @@ function startGame() {
             gridPoints.push(out);
         }
     }
-    console.log(gridPoints);
+    //console.log(gridPoints);
+
     // FILLING BOXES
 
-    let graphics = this.add.graphics({ fillStyle: { color: offWhite } });
+    graphics = this.add.graphics({ fillStyle: { color: offWhite } });
 
     graphics.onResizeCallback = function (w, h) {
+        this.setScale(mainBoard.scale);
+        this.y = mainBoard.getBounds().y;
+        this.x = mainBoard.getBounds().x;
+    }
+
+    fillPath = this.add.graphics({ fillStyle: { color: mustardYellow } });
+
+    fillPath.onResizeCallback = function (w, h) {
         this.setScale(mainBoard.scale);
         this.y = mainBoard.getBounds().y;
         this.x = mainBoard.getBounds().x;
@@ -295,9 +305,11 @@ function startGame() {
     //console.log(boardData);
     for (let i = 0; i < rows; i++) {
         let startPoint = i;
+        let row = [];
         for (let j = 0; j < columns; j++) {
             currentBox = boardData[i][j];
             bottomBox = null;
+            console.log(currentBox);
 
 
             let upperLeftPoint = startPoint;
@@ -307,6 +319,10 @@ function startGame() {
             let upperRightPoint = upperLeftPoint + rows + 1;
             let lowerLeftPoint = upperLeftPoint + 1;
             let lowerRightPoint = upperRightPoint + 1;
+
+            let box = { value: currentBox, upperLeftPoint: gridPoints[upperLeftPoint], upperRightPoint: gridPoints[upperRightPoint], lowerLeftPoint: gridPoints[lowerLeftPoint], lowerRightPoint: gridPoints[lowerRightPoint] }
+            row.push(box);
+            //console.log(box);
 
             // If box is white
             if (!currentBox) {
@@ -349,8 +365,11 @@ function startGame() {
                     drawRightBorder(gridPoints[upperRightPoint], gridPoints[lowerRightPoint], lightGray);
             }
         }
+        boxPositions.push(row);
+
 
     }
+    //console.log(boxPositions);
 
     function drawInsideBorder(startPoint, endPoint, color) {
         let border = scene.add.line(0, 0, startPoint.x, startPoint.y - 2, endPoint.x, endPoint.y - 2, color).setOrigin(0);
@@ -408,65 +427,105 @@ function startGame() {
 function moveBall(direction) {
 
     targetPosition = { x: ball.x, y: ball.y }
-
+    let targetIndex;
+    let position;
+    let row;
+    let column;
+    
+    if (ballActive) return;
+    ballActive = true;
     switch (direction) {
 
         case "left":
 
+            row = boxPositions[currentBallPosition.row];
+            targetIndex = 0;
+            for (let i = currentBallPosition.column - 1; i > 0; i--) {
+                let box = row[i];
+                if (box.value === 0) {
+                    targetIndex = i + 1;
+                    break;
+                }
+            }
 
-            targetPosition.x = mainBoard.x - mainBoard.displayWidth / 2 + (gridPoints[0].x * mainBoard.scale + gridPoints[8].x * mainBoard.scale) / 2;
+            position = boxPositions[currentBallPosition.row][targetIndex];
+            targetPosition.x = (position.lowerRightPoint.x + position.lowerLeftPoint.x) / 2 * mainBoard.scale + mainBoard.x - mainBoard.displayWidth / 2;
             targetPosition.y = ball.y;
-
+            currentBallPosition.column = targetIndex;
 
             break;
 
         case "right":
-
-            for (let i = 0; i < 1; i++) {
-                for (let j = 0; j < boardData[0].length; j++) {
-
-                    if (boardData[i][j] === 1) {
-
-                        targetPosition.x = mainBoard.x - mainBoard.displayWidth / 2 + (gridPoints[j * (boardData[i].length + 1)].x * mainBoard.scale + gridPoints[(j + 1) * (boardData[i].length + 1)].x * mainBoard.scale) / 2;
-                        targetPosition.y = ball.y;
-                        let index1 = i;
-                        let index2 = j;
-                        ballPosition = [];
-                        ballPosition = boardData[i][j];
-
-                    } else {
-                        
-                        break;
-                    }
+            row = boxPositions[currentBallPosition.row];
+            targetIndex = row.length - 1;
+            for (let i = 0; i < row.length; i++) {
+                let box = row[i];
+                if (box.value === 0) {
+                    targetIndex = i - 1;
+                    break;
                 }
             }
+
+            position = boxPositions[currentBallPosition.row][targetIndex];
+
+            targetPosition.x = (position.upperRightPoint.x + position.upperLeftPoint.x) / 2 * mainBoard.scale + mainBoard.x - mainBoard.displayWidth / 2;
+            targetPosition.y = ball.y;
+            // console.log("x: ", targetPosition.x);
+            // console.log("y: ", targetPosition.y);
+
+            currentBallPosition.column = targetIndex;
 
             break;
 
         case "down":
+            column = boxPositions;
+            targetIndex = column.length - 1;
+            for (let i = currentBallPosition.row; i < column.length; i++) {
+                let box = column[i][currentBallPosition.column];
+                if (box.value === 0) {
+                    targetIndex = i - 1;
+                    break;
+                }
+            }
+
+            position = boxPositions[targetIndex][currentBallPosition.column];
 
             targetPosition.x = ball.x;
-            targetPosition.y = mainBoard.y - mainBoard.displayHeight / 2 + (gridPoints[38].y * mainBoard.scale + gridPoints[39].y * mainBoard.scale) / 2;
-
+            targetPosition.y = mainBoard.y - mainBoard.displayHeight / 2 + (position.upperLeftPoint.y + position.lowerLeftPoint.y) / 2 * mainBoard.scale;
+            currentBallPosition.row = targetIndex;
 
             break;
 
         case "up":
+            column = boxPositions;
+            targetIndex = 0;
+            for (let i = currentBallPosition.row - 1; i > -1; i--) {
+                let box = column[i][currentBallPosition.column];
+                if (box.value === 0) {
+                    targetIndex = i + 1;
+                    break;
+                }
+            }
+
+            position = boxPositions[targetIndex][currentBallPosition.column];
 
             targetPosition.x = ball.x;
-            targetPosition.y = mainBoard.y - mainBoard.displayHeight / 2 + (gridPoints[32].y * mainBoard.scale + gridPoints[33].y * mainBoard.scale) / 2;
+            targetPosition.y = mainBoard.y - mainBoard.displayHeight / 2 + (position.upperLeftPoint.y + position.lowerLeftPoint.y) / 2 * mainBoard.scale;
+            currentBallPosition.row = targetIndex;
 
             break;
 
         default:
     }
 
+    scene.tweens.killTweensOf(ball);
     let tween = scene.tweens.add({
         targets: ball,
         x: targetPosition.x,
         y: targetPosition.y,
         onComplete: function () {
             ballActive = false;
+            //console.log("completed: ", ballActive);
         },
         ease: 'Linear',
         duration: 100,
@@ -476,6 +535,9 @@ function moveBall(direction) {
 
 
 }
+
+let prevX;
+let prevY;
 
 function updateGame(time, delta) {
 
@@ -488,31 +550,46 @@ function updateGame(time, delta) {
 
 
     if (pointer.isDown) {
-        console.log(pointer);
+        // console.log(pointer);
+        // console.log("ballActive: ", ballActive);
+        console.log("pointerx= " + pointer.x, "pointery= " + pointer.y, "prevX= " + prevX, "prevY: " + prevY);
 
-        if (pointer.downX + 100 - pointer.x < 0 && !ballActive) {
+        if ((pointer.x !== prevX || pointer.y !== prevY) ) {
 
-            ballActive = true;
-            moveBall('right');
-            console.log('right');
 
-        }
-        else if (pointer.downX - 100 - pointer.x > 0 && !ballActive) {
-            ballActive = true;
-            moveBall('left');
-            console.log('left');
-        }
-        else if (pointer.downY + 100 - pointer.y > 0 && !ballActive) {
-            ballActive = true;
-            moveBall('up');
-            console.log('up');
-        }
-        else if (pointer.downY - 100 - pointer.y < 0 && !ballActive) {
-            ballActive = true;
-            moveBall('down');
-            console.log('down');
-        }
+            if (Math.abs(pointer.x - prevX) > Math.abs(pointer.y - prevY)) {
 
+
+
+                if (pointer.x - prevX > 5 && Math.abs(pointer.y - prevY) !== 0) {
+
+                    moveBall('right');
+                    console.log('right');
+
+                }
+                else if (pointer.x - prevX < 5 && Math.abs(pointer.y - prevY) !== 0) {
+                    moveBall('left');
+                    console.log('left');
+                }
+            } else {
+
+                if (pointer.y - prevY < 5 && Math.abs(pointer.x - prevX) !== 0) {
+                    moveBall('up');
+                    console.log('up');
+                }
+                else if (pointer.y - prevY > 5 && Math.abs(pointer.x - prevX) !== 0) {
+                    
+                    moveBall('down');
+                    console.log('down');
+                }
+            }
+        }
+        prevX = pointer.x;
+        prevY = pointer.y;
+
+    } else {
+        prevX = undefined;
+        prevY = undefined;
     }
 }
 
