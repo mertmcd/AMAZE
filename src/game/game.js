@@ -48,7 +48,7 @@ let uiScene = {
 let lastWidth, lastHeight, aspectRatio;
 let currentWidth, currentHeight, squareness, isLandscape;
 let currentTime, deltaTime;
-let mainBoard, triangle, ball, points, main, data;
+let mainBoard, hand, ball, points, main, data;
 let ballActive = false;
 let fillBox;
 let fillPath;
@@ -57,6 +57,8 @@ let lineArrayVertical = [];
 let lineArrayHorizontal = [];
 let gridPoints = [];
 let rows;
+let prevX;
+let prevY;
 let columns;
 let currentBox;
 let bottomBox;
@@ -69,6 +71,9 @@ let htmlDarkGray = "#4E4E58"; // Color of the text
 let offWhite = 0xffffff; // Color of the closed paths
 let lightGray = 0x797b87; // Color of the grids.
 let mustardYellow = 0xf5ac3d; // Color of the ball and trail to be painted.
+let orange = 0xff863d;
+let ballParticle;
+let boxCount;
 
 /** @type {Phaser.Scene} */
 let scene;
@@ -150,18 +155,19 @@ function startGame() {
     [1, 1, 1, 1, 0, 0, 0],
   ];
 
+  let filledData = boardData.slice();
+  console.log(filledData);
+
   rows = boardData.length;
   columns = boardData[0].length;
 
-  // DRAWING MAINBOARD
+  // DRAW AND SCALE MAINBOARD
 
   // points = [10, 0, 200, 0, 210, 200, 0, 200];
 
   points = [10, 0, columns * 28.5, 0, columns * 28.5 + 10, rows * 30, 0, rows * 30];
 
   mainBoard = scene.add.polygon(0, 0, points, darkGray).setOrigin(0.5);
-
-  //console.log(mainBoard);
 
   mainBoard.onResizeCallback = function (w, h) {
     let scale = Math.min((w * 0.7) / this.width, (h * 0.7) / this.height);
@@ -170,7 +176,7 @@ function startGame() {
     this.x = w * 0.5;
   };
 
-  // TEXT AND BUTTON
+  // DRAW AND SCALE TEXT AND BUTTON
 
   let text = this.add
     .text(0, 0, "LEVEL 1", {
@@ -183,10 +189,12 @@ function startGame() {
     .setOrigin(0.5);
 
   text.onResizeCallback = function () {
-    this.setScale(mainBoard.displayWidth / 3 / this.width);
+    this.setScale(mainBoard.displayWidth / 4 / this.width);
     this.x = currentWidth / 2;
     this.y = mainBoard.getTopCenter().y / 2;
   };
+
+  //text.text = "LEVEL 1 CLEARDE";
 
   let btn = button.addButton(this, "atlas", "button", "PLAY NOW", "#FFFFFF", main.gotoLink);
 
@@ -196,7 +204,9 @@ function startGame() {
     this.x = currentWidth / 2;
   };
 
-  let tween2 = scene.tweens.add({
+  // BUTTON TWEEN
+
+  let buttonTween = scene.tweens.add({
     targets: btn,
     duration: 400,
     ease: "Linear",
@@ -205,6 +215,8 @@ function startGame() {
     scaleY: {from: btn.scaleY * 0.6, to: btn.scaleY * 0.65},
     yoyo: true,
   });
+
+  //////////////////
 
   let fixedPathData = [];
 
@@ -293,9 +305,7 @@ function startGame() {
     }
   }
 
-  //console.log(gridPoints);
-
-  // FILLING BOXES
+  // FILLING BOXES AND PATHS
 
   fillBox = this.add.graphics({fillStyle: {color: offWhite}}).setDepth(1);
 
@@ -313,7 +323,6 @@ function startGame() {
     this.x = mainBoard.getBounds().x;
   };
 
-  //console.log(boardData);
   for (let i = 0; i < rows; i++) {
     let startPoint = i;
     let row = [];
@@ -335,21 +344,21 @@ function startGame() {
         lowerRightPoint: gridPoints[lowerRightPoint],
       };
       row.push(box);
-      //console.log(box);
 
-      // If box is white
+      // If box is white:
+
       if (!currentBox) {
-        // color white
+        // Fill White
         fillBox.fillPoints([gridPoints[upperLeftPoint], gridPoints[upperRightPoint], gridPoints[lowerRightPoint], gridPoints[lowerLeftPoint]], true);
-
-        // draw white line top
+        // Shift White Line Top
         drawInsideBorder(gridPoints[upperLeftPoint], gridPoints[upperRightPoint], offWhite);
-
         if (i < rows - 1) bottomBox = boardData[i + 1][j];
-
-        // draw gray line bottom
+        // Shift Gray Line Bottom
         if (bottomBox) drawInsideBorder(gridPoints[lowerLeftPoint], gridPoints[lowerRightPoint], lightGray);
       }
+
+      // DRAWING BORDERS OF THE MAINBOARD
+
       startPoint += rows + 1;
 
       if (i === 0 && currentBox) drawTopBorder(gridPoints[upperLeftPoint], gridPoints[upperRightPoint], lightGray);
@@ -372,7 +381,6 @@ function startGame() {
     }
     boxPositions.push(row);
   }
-  //console.log(boxPositions);
 
   function drawInsideBorder(startPoint, endPoint, color) {
     let border = scene.add
@@ -420,34 +428,61 @@ function startGame() {
     border.setLineWidth(2);
   }
 
+  // ADD BALL
+
   ball = this.add.image(0, 0, "ball").setOrigin(0.5);
   ball.setTint(mustardYellow);
   ball.lastPosition = boxPositions[0][0];
+  console.log(boxPositions);
   fillPath.fillPoints([ball.lastPosition.upperLeftPoint, ball.lastPosition.upperRightPoint, ball.lastPosition.lowerRightPoint, ball.lastPosition.lowerLeftPoint], true);
 
   ball.onResizeCallback = function () {
-    // let scale = Math.min(w / this.width, h / this.height);
     this.setScale(mainBoard.scale / 6);
-    console.log(ball.lastPosition);
-
-    this.x = mainBoard.x - mainBoard.displayWidth / 2 + (ball.lastPosition.upperLeftPoint.x * mainBoard.scale + ball.lastPosition.upperRightPoint.x * mainBoard.scale) / 2;
+    this.lastScale = this.scale;
     this.y = mainBoard.y - mainBoard.displayHeight / 2 + (ball.lastPosition.lowerLeftPoint.y * mainBoard.scale + ball.lastPosition.upperLeftPoint.y * mainBoard.scale) / 2;
+    this.x = mainBoard.x - mainBoard.displayWidth / 2 + (ball.lastPosition.upperLeftPoint.x * mainBoard.scale + ball.lastPosition.upperRightPoint.x * mainBoard.scale) / 2;
     // this.x = mainBoard.x - mainBoard.displayWidth / 2 + (gridPoints[0].x * mainBoard.scale + gridPoints[8].x * mainBoard.scale) / 2;
     // this.y = mainBoard.y - mainBoard.displayHeight / 2 + (gridPoints[1].y * mainBoard.scale + gridPoints[0].y * mainBoard.scale) / 2;
+  };
+
+  hand = this.add.image(0, 0, "hand").setOrigin(0.5).setDepth(1);
+  hand.setTintFill(offWhite);
+
+  hand.onResizeCallback = function () {
+    this.setScale(mainBoard.scale / 8);
+    this.y = ball.getCenter().y + ball.displayHeight / 2;
+    this.x = ball.getCenter().x + ball.displayWidth / 6;
+
+    let handTween = scene.tweens.add({
+      targets: hand,
+      x: hand.x + 200,
+      y: hand.y,
+      alpha: {from: 1, to: 0},
+      ease: "Linear",
+
+      duration: 1000,
+      repeat: -1,
+      yoyo: false,
+    });
+
+    scene.tweens.killTweensOf(hand);
   };
 }
 
 function moveBall(direction) {
-  targetPosition = {x: ball.x, y: ball.y};
   let targetIndex;
   let position;
   let row;
   let column;
-  //fillPath.fillPoints([gridPoints[0], gridPoints[8], gridPoints[9], gridPoints[1]], true);
 
-  if (ballActive) return;
+  hand.setVisible(false);
+
+  if (ballActive) return window.b();
   ballActive = true;
-  let boxCount = 0;
+
+  // if (!boxCount) return;
+
+  boxCount = 0;
 
   switch (direction) {
     case "left":
@@ -463,6 +498,7 @@ function moveBall(direction) {
         }
       }
 
+      targetPosition = {x: ball.x, y: ball.y};
       boxCount = Math.abs(currentBallPosition.column - targetIndex);
       position = boxPositions[currentBallPosition.row][targetIndex];
       targetPosition.x = ((position.lowerRightPoint.x + position.lowerLeftPoint.x) / 2) * mainBoard.scale + mainBoard.x - mainBoard.displayWidth / 2;
@@ -474,18 +510,18 @@ function moveBall(direction) {
       row = boxPositions[currentBallPosition.row];
       targetIndex = row.length - 1;
 
-      for (let i = 0; i < row.length; i++) {
+      for (let i = currentBallPosition.column; i < row.length; i++) {
         let box = row[i];
-        // boxCount++;
+
         if (box.value === 0) {
           targetIndex = i - 1;
           break;
         }
       }
       boxCount = Math.abs(currentBallPosition.column - targetIndex);
-
       position = boxPositions[currentBallPosition.row][targetIndex];
-      targetPosition.x = ((position.upperRightPoint.x + position.upperLeftPoint.x) / 2) * mainBoard.scale + mainBoard.x - mainBoard.displayWidth / 2;
+      targetPosition.x = ((position.upperLeftPoint.x + position.upperRightPoint.x) / 2) * mainBoard.scale + mainBoard.x - mainBoard.displayWidth / 2;
+      console.log("---" + targetPosition.x);
       targetPosition.y = ball.y;
 
       break;
@@ -526,18 +562,16 @@ function moveBall(direction) {
       position = boxPositions[targetIndex][currentBallPosition.column];
       targetPosition.x = ball.x;
       targetPosition.y = mainBoard.y - mainBoard.displayHeight / 2 + ((position.upperLeftPoint.y + position.lowerLeftPoint.y) / 2) * mainBoard.scale;
-      console.log(position);
-
       break;
 
     default:
   }
 
   ball.lastPosition = position;
+
   let dur = 30; // paint duration
 
   for (let i = 1; i < boxCount + 1; i++) {
-    // 1
     let pos;
 
     if (direction === "right") pos = boxPositions[currentBallPosition.row][currentBallPosition.column + i];
@@ -546,7 +580,7 @@ function moveBall(direction) {
     else if (direction === "down") pos = boxPositions[currentBallPosition.row + i][currentBallPosition.column];
 
     scene.time.delayedCall(dur * i, () => {
-      fillPath.fillPoints([pos.upperLeftPoint, pos.upperRightPoint, pos.lowerRightPoint, pos.lowerLeftPoint], true);
+      if (pos) fillPath.fillPoints([pos.upperLeftPoint, pos.upperRightPoint, pos.lowerRightPoint, pos.lowerLeftPoint], true);
     });
   }
 
@@ -554,23 +588,25 @@ function moveBall(direction) {
   let initialPos = {x: ball.getCenter().x, y: ball.getCenter().y + ball.displayHeight / 2};
   let initialPos2 = {x: ball.getCenter().x + ball.displayHeight / 2, y: ball.getCenter().y};
 
-  scene.tweens.killTweensOf(ball);
-
-  let tween = scene.tweens.add({
+  let ballTween = scene.tweens.add({
     targets: ball,
     x: targetPosition.x,
     y: targetPosition.y,
+    ease: "Linear",
+    duration: boxCount * dur,
+    repeat: 0,
+    yoyo: false,
 
     onStart: function () {
-      ball.setDepth(5);
+      ball.setDepth(3);
       if (direction === "left" || direction === "right")
-        tri = scene.add.triangle(0, 0, ball.getCenter().x, ball.getCenter().y, ball.getTopCenter().x, ball.getTopCenter().y, ball.getBottomCenter().x, ball.getBottomCenter().y, offWhite).setOrigin(0.5).setDepth(2);
-      else tri = scene.add.triangle(0, 0, ball.getCenter().x, ball.getCenter().y, ball.getRightCenter().x, ball.getRightCenter().y, ball.getLeftCenter().x, ball.getLeftCenter().y, offWhite).setOrigin(0.5).setDepth(2);
+        tri = scene.add.triangle(0, 0, ball.getCenter().x, ball.getCenter().y, ball.getTopCenter().x, ball.getTopCenter().y, ball.getBottomCenter().x, ball.getBottomCenter().y, offWhite).setOrigin(0.5).setDepth(2).setAlpha(0.7);
+      else tri = scene.add.triangle(0, 0, ball.getCenter().x, ball.getCenter().y, ball.getRightCenter().x, ball.getRightCenter().y, ball.getLeftCenter().x, ball.getLeftCenter().y, offWhite).setOrigin(0.5).setDepth(2).setAlpha(0.7);
     },
 
     onUpdate: function () {
       if (direction === "left" || direction === "right") tri.setTo(initialPos.x, initialPos.y, ball.getCenter().x, ball.getCenter().y + ball.displayHeight, ball.getCenter().x, ball.getCenter().y);
-      else tri.setTo(initialPos2.x, initialPos2.y, ball.getCenter().x + ball.displayHeight, ball.getCenter().y, ball.getCenter().x, ball.getCenter().y);
+      else tri.setTo(initialPos2.x, initialPos2.y, ball.getCenter().x + ball.displayWidth, ball.getCenter().y, ball.getCenter().x, ball.getCenter().y);
     },
 
     onComplete: function () {
@@ -579,16 +615,79 @@ function moveBall(direction) {
       else currentBallPosition.row = targetIndex;
       tri.destroy();
     },
+  });
 
+  const props = {};
+
+  if (direction === "left" || direction === "right") {
+    props.scaleX = {from: ball.lastScale, to: ball.lastScale * 1.5};
+  } else {
+    props.scaleY = {from: ball.lastScale, to: ball.lastScale * 1.5};
+  }
+
+  let ballTween2 = scene.tweens.add({
+    targets: ball,
+    ...props,
     ease: "Linear",
-    duration: boxCount * dur,
+    duration: (boxCount * dur) / 2,
     repeat: 0,
-    yoyo: false,
+    yoyo: true,
   });
 }
 
-let prevX;
-let prevY;
+// CONFETTI EMITTER
+
+window.t = function () {
+  window.emitter = scene.add
+    .particles("atlas2")
+    .setDepth(6)
+    .createEmitter({
+      frame: ["1", "2", "3", "4", "5"],
+      x: {
+        onEmit: function () {
+          return Math.random() * lastWidth;
+        },
+      },
+      y: -100,
+      rotate: {start: 0, end: 360},
+      frequency: 1,
+      scale: {start: 1, end: 0},
+      lifespan: 2000,
+      gravityY: 800,
+    });
+};
+
+// BALL PARTICLE EMITTER
+
+window.b = function () {
+  if (!ballParticle) {
+    ballParticle = scene.add
+      .particles("ball")
+      .setDepth(9)
+      .createEmitter({
+        x: {
+          onEmit: function () {
+            return ball.getCenter().x;
+          },
+        },
+        y: {
+          onEmit: function () {
+            return ball.getCenter().y;
+          },
+        },
+        speed: {min: -100, max: -50},
+        tint: orange,
+        angle: {min: 0, max: 360},
+        scale: {start: 0.1, end: 0},
+        blendMode: "SCREEN",
+        frequency: -1,
+        quantity: 10,
+        lifespan: 500,
+      });
+  } else {
+    ballParticle.emitParticleAt(ball.getCenter().x, ball.getCenter().y);
+  }
+};
 
 function updateGame(time, delta) {
   currentTime = time;
@@ -599,24 +698,20 @@ function updateGame(time, delta) {
   let pointer = this.input.activePointer;
 
   if (pointer.isDown) {
-    // console.log(pointer);
-    // console.log("ballActive: ", ballActive);
-    console.log("pointerx= " + pointer.x, "pointery= " + pointer.y, "prevX= " + prevX, "prevY: " + prevY);
-
     if (pointer.x !== prevX || pointer.y !== prevY) {
       if (Math.abs(pointer.x - prevX) > Math.abs(pointer.y - prevY)) {
-        if (pointer.x - prevX > 5 && Math.abs(pointer.y - prevY) !== 0) {
+        if (pointer.x - prevX > 15) {
           moveBall("right");
           console.log("right");
-        } else if (pointer.x - prevX < 5 && Math.abs(pointer.y - prevY) !== 0) {
+        } else if (pointer.x - prevX < -15) {
           moveBall("left");
           console.log("left");
         }
       } else {
-        if (pointer.y - prevY < 5 && Math.abs(pointer.x - prevX) !== 0) {
+        if (pointer.y - prevY < -15) {
           moveBall("up");
           console.log("up");
-        } else if (pointer.y - prevY > 5 && Math.abs(pointer.x - prevX) !== 0) {
+        } else if (pointer.y - prevY > 15) {
           moveBall("down");
           console.log("down");
         }
