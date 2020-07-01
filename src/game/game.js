@@ -564,7 +564,7 @@ function moveBall(direction) {
 
     default:
   }
-  //if (!boxCount) return;
+  //   if (!boxCount) return;
 
   ball.lastPosition = position;
 
@@ -618,20 +618,22 @@ function moveBall(direction) {
 
   const props = {};
 
-  if (direction === "left" || direction === "right") {
-    props.scaleX = {from: ball.lastScale, to: ball.lastScale * 2};
-  } else {
-    props.scaleY = {from: ball.lastScale, to: ball.lastScale * 2};
-  }
+  if (boxCount) {
+    if (direction === "left" || direction === "right") {
+      props.scaleX = {from: ball.lastScale, to: ball.lastScale * 3};
+    } else {
+      props.scaleY = {from: ball.lastScale, to: ball.lastScale * 3};
+    }
 
-  let ballTween2 = scene.tweens.add({
-    targets: ball,
-    ...props,
-    ease: "Linear",
-    duration: (boxCount * dur) / 2,
-    repeat: 0,
-    yoyo: true,
-  });
+    let ballTween2 = scene.tweens.add({
+      targets: ball,
+      ...props,
+      ease: "Linear",
+      duration: (boxCount * dur) / 2,
+      repeat: 0,
+      yoyo: true,
+    });
+  }
 }
 
 // CONFETTI EMITTER
@@ -650,7 +652,7 @@ window.t = function () {
       y: -100,
       rotate: {start: 0, end: 360},
       quantity: 3,
-      frequency: 1,
+      frequency: 20,
       scale: {start: 1, end: 0},
       lifespan: 2000,
       gravityY: 800,
