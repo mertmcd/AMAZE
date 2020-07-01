@@ -480,8 +480,6 @@ function moveBall(direction) {
   if (ballActive) return window.b();
   ballActive = true;
 
-  // if (!boxCount) return;
-
   boxCount = 0;
 
   switch (direction) {
@@ -566,6 +564,7 @@ function moveBall(direction) {
 
     default:
   }
+  //if (!boxCount) return;
 
   ball.lastPosition = position;
 
@@ -620,9 +619,9 @@ function moveBall(direction) {
   const props = {};
 
   if (direction === "left" || direction === "right") {
-    props.scaleX = {from: ball.lastScale, to: ball.lastScale * 1.5};
+    props.scaleX = {from: ball.lastScale, to: ball.lastScale * 2};
   } else {
-    props.scaleY = {from: ball.lastScale, to: ball.lastScale * 1.5};
+    props.scaleY = {from: ball.lastScale, to: ball.lastScale * 2};
   }
 
   let ballTween2 = scene.tweens.add({
@@ -638,7 +637,7 @@ function moveBall(direction) {
 // CONFETTI EMITTER
 
 window.t = function () {
-  window.emitter = scene.add
+  window.confettiEmitter = scene.add
     .particles("atlas2")
     .setDepth(6)
     .createEmitter({
@@ -650,6 +649,7 @@ window.t = function () {
       },
       y: -100,
       rotate: {start: 0, end: 360},
+      quantity: 3,
       frequency: 1,
       scale: {start: 1, end: 0},
       lifespan: 2000,

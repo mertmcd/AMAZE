@@ -8,7 +8,6 @@ var scene;
 
 import atlasSrc from "../../assets/atlas.png";
 import atlasJson from "../../assets/atlas.json";
-
 import atlas2Src from "../../assets/atlas2.png";
 import atlas2Json from "../../assets/atlas2.json";
 import ballSrc from "../../assets/ball.png";
