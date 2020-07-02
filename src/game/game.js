@@ -66,7 +66,7 @@ let bottomBox;
 let targetPosition = {};
 let boxPositions = [];
 let boardData;
-let currentBallPosition = {column: 1, row: 1};
+let currentBallPosition = {column: 0, row: 0};
 let darkGray = 0x4e4e58; // Color of the ball path
 let htmlDarkGray = "#4E4E58"; // Color of the text
 let offWhite = 0xffffff; // Color of the closed paths
@@ -736,13 +736,15 @@ function polyShadow(i, j, delay) {
     Math.abs(box.upperRightPoint.y - box.lowerRightPoint.y),
   ];
 
-  let polygon = scene.add.polygon(0, 0, dots, lightGray).setDepth(0).setOrigin(0.5, 1).setAlpha(0);
+  let polygon = scene.add.polygon(0, 0, dots, lightGray).setDepth(0).setOrigin(0.5, 1);
   console.log(polygon);
 
   polygon.onResizeCallback = function () {
     this.setScale(mainBoard.scale);
     this.y = mainBoard.getTopCenter().y + boxPositions[i][j].lowerRightPoint.y * mainBoard.scale;
     this.x = mainBoard.getLeftCenter().x + boxPositions[i][j].upperRightPoint.x * mainBoard.scale;
+
+    this.setAlpha(0);
 
     if (this.polyTween) this.polyTween.remove();
 
