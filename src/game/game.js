@@ -44,11 +44,11 @@ let uiScene = {
   active: true,
   create: createUi,
 };
-
+let gameFinished;
 let lastWidth, lastHeight, aspectRatio;
 let currentWidth, currentHeight, squareness, isLandscape;
 let currentTime, deltaTime;
-let mainBoard, hand, ball, points, main, data;
+let mainBoard, text, text2, btn, hand, ball, points, main, data;
 let ballActive = false;
 let fillBox;
 let fillPath;
@@ -71,6 +71,7 @@ let htmlDarkGray = "#4E4E58"; // Color of the text
 let offWhite = 0xffffff; // Color of the closed paths
 let lightGray = 0x797b87; // Color of the grids.
 let mustardYellow = 0xf5ac3d; // Color of the ball and trail to be painted.
+let htmlRed = "#BD0606";
 let orange = 0xff863d;
 let ballParticle;
 let boxCount;
@@ -155,9 +156,6 @@ function startGame() {
     [1, 1, 1, 1, 0, 0, 0],
   ];
 
-  let filledData = boardData.slice();
-  console.log(filledData);
-
   rows = boardData.length;
   columns = boardData[0].length;
 
@@ -176,9 +174,9 @@ function startGame() {
     this.x = w * 0.5;
   };
 
-  // DRAW AND SCALE TEXT AND BUTTON
+  // ADD TEXTS
 
-  let text = this.add
+  text = this.add
     .text(0, 0, "LEVEL 1", {
       fontFamily: "ui_font_1",
       fontSize: 40,
@@ -194,17 +192,38 @@ function startGame() {
     this.y = mainBoard.getTopCenter().y / 2;
   };
 
-  //text.text = "LEVEL 1 CLEARDE";
+  text2 = this.add
+    .text(0, 0, "TAP TO NEXT LEVEL", {
+      fontFamily: "ui_font_1",
+      fontSize: 50,
+      color: htmlRed,
+      strokeThickness: 1.5,
+      stroke: htmlRed,
+    })
+    .setOrigin(0.5)
+    .setInteractive();
+  text2.setVisible(false);
+  text2.on("pointerdown", function () {
+    main.gotoLink();
+  });
 
-  let btn = button.addButton(this, "atlas", "button", "PLAY NOW", "#FFFFFF", main.gotoLink);
-
-  btn.onResizeCallback = function () {
-    this.setScale(mainBoard.displayWidth / 2 / this.width);
+  text2.onResizeCallback = function () {
+    this.setScale(mainBoard.displayWidth / this.width);
     this.y = (mainBoard.getBottomCenter().y + currentHeight) / 2;
     this.x = currentWidth / 2;
   };
 
-  // BUTTON TWEEN
+  // ADD BUTTON
+
+  btn = button.addButton(this, "atlas", "button", "PLAY NOW", "#FFFFFF", main.gotoLink);
+
+  btn.onResizeCallback = function () {
+    this.setScale(mainBoard.displayWidth / this.width);
+    this.y = (mainBoard.getBottomCenter().y + currentHeight) / 2;
+    this.x = currentWidth / 2;
+  };
+
+  // BUTTON TWEENS
 
   let buttonTween = scene.tweens.add({
     targets: btn,
@@ -213,6 +232,16 @@ function startGame() {
     repeat: -1,
     scaleX: {from: btn.scaleX * 0.6, to: btn.scaleX * 0.65},
     scaleY: {from: btn.scaleY * 0.6, to: btn.scaleY * 0.65},
+    yoyo: true,
+  });
+
+  let textTween = scene.tweens.add({
+    targets: text2,
+    duration: 400,
+    ease: "Linear",
+    repeat: -1,
+    scaleX: {from: text2.scaleX, to: text2.scaleX * 1.1},
+    scaleY: {from: text2.scaleY, to: text2.scaleY * 1.1},
     yoyo: true,
   });
 
@@ -342,6 +371,7 @@ function startGame() {
         upperRightPoint: gridPoints[upperRightPoint],
         lowerLeftPoint: gridPoints[lowerLeftPoint],
         lowerRightPoint: gridPoints[lowerRightPoint],
+        color: i === 0 && j === 0, // variable
       };
       row.push(box);
 
@@ -578,10 +608,18 @@ function moveBall(direction) {
     else if (direction === "up") pos = boxPositions[currentBallPosition.row - i][currentBallPosition.column];
     else if (direction === "down") pos = boxPositions[currentBallPosition.row + i][currentBallPosition.column];
 
+    pos.color = true;
+
     scene.time.delayedCall(dur * i, () => {
       if (pos) fillPath.fillPoints([pos.upperLeftPoint, pos.upperRightPoint, pos.lowerRightPoint, pos.lowerLeftPoint], true);
     });
   }
+
+  //   console.log(
+  //     boxPositions.some((row) => {
+  //       return row.some((box) => box.value === 1 && box.color !== false);
+  //     })
+  //   );
 
   let tri;
   let initialPos = {x: ball.getCenter().x, y: ball.getCenter().y + ball.displayHeight / 2};
@@ -620,9 +658,9 @@ function moveBall(direction) {
 
   if (boxCount) {
     if (direction === "left" || direction === "right") {
-      props.scaleX = {from: ball.lastScale, to: ball.lastScale * 3};
+      props.scaleX = {from: ball.lastScale, to: ball.lastScale * 2.5};
     } else {
-      props.scaleY = {from: ball.lastScale, to: ball.lastScale * 3};
+      props.scaleY = {from: ball.lastScale, to: ball.lastScale * 2.5};
     }
 
     let ballTween2 = scene.tweens.add({
@@ -653,7 +691,7 @@ window.t = function () {
       rotate: {start: 0, end: 360},
       quantity: 3,
       frequency: 20,
-      scale: {start: 1, end: 0},
+      scale: {start: 1, end: 0.2},
       lifespan: 2000,
       gravityY: 800,
     });
@@ -691,6 +729,15 @@ window.b = function () {
   }
 };
 
+function rectShadow() {}
+
+function isGameEnd() {
+  let end = boxPositions.some((row) => {
+    return row.some((box) => box.value === 1 && box.color === false);
+  });
+  return end;
+}
+
 function updateGame(time, delta) {
   currentTime = time;
   deltaTime = delta;
@@ -699,28 +746,35 @@ function updateGame(time, delta) {
 
   let pointer = this.input.activePointer;
 
-  if (pointer.isDown) {
+  if (pointer.isDown && !gameFinished) {
     if (pointer.x !== prevX || pointer.y !== prevY) {
       if (Math.abs(pointer.x - prevX) > Math.abs(pointer.y - prevY)) {
         if (pointer.x - prevX > 15) {
           moveBall("right");
-          console.log("right");
         } else if (pointer.x - prevX < -15) {
           moveBall("left");
-          console.log("left");
         }
       } else {
         if (pointer.y - prevY < -15) {
           moveBall("up");
-          console.log("up");
         } else if (pointer.y - prevY > 15) {
           moveBall("down");
-          console.log("down");
         }
       }
     }
     prevX = pointer.x;
     prevY = pointer.y;
+
+    let endGame = isGameEnd();
+
+    if (!endGame) {
+      text.text = "LEVEL 1 CLEARED";
+      text.setScale(1.5);
+      window.t();
+      btn.setVisible(false);
+      text2.setVisible(true);
+      gameFinished = true;
+    }
   } else {
     prevX = undefined;
     prevY = undefined;
