@@ -66,7 +66,7 @@ let bottomBox;
 let targetPosition = {};
 let boxPositions = [];
 let boardData;
-let currentBallPosition = {column: 0, row: 0};
+let currentBallPosition = {column: 1, row: 1};
 let darkGray = 0x4e4e58; // Color of the ball path
 let htmlDarkGray = "#4E4E58"; // Color of the text
 let offWhite = 0xffffff; // Color of the closed paths
@@ -464,10 +464,10 @@ function startGame() {
 
   ball = this.add.image(0, 0, "ball").setOrigin(0.5);
   ball.setTint(mustardYellow);
-  ball.lastPosition = boxPositions[0][0];
-  console.log(boxPositions[6][0].upperRightPoint.x);
+  ball.lastPosition = boxPositions[currentBallPosition.row][currentBallPosition.column];
 
   fillPath.fillPoints([ball.lastPosition.upperLeftPoint, ball.lastPosition.upperRightPoint, ball.lastPosition.lowerRightPoint, ball.lastPosition.lowerLeftPoint], true);
+  ball.lastPosition.color = true;
 
   ball.onResizeCallback = function () {
     this.setScale(mainBoard.scale / 6);
@@ -516,9 +516,10 @@ function moveBall(direction) {
   switch (direction) {
     case "left":
       row = boxPositions[currentBallPosition.row];
+      // console.log(row);
       targetIndex = 0;
 
-      for (let i = currentBallPosition.column - 1; i > 0; i--) {
+      for (let i = currentBallPosition.column - 1; i >= 0; i--) {
         let box = row[i];
 
         if (box.value === 0) {
@@ -578,7 +579,7 @@ function moveBall(direction) {
       column = boxPositions;
       targetIndex = 0;
 
-      for (let i = currentBallPosition.row - 1; i > -1; i--) {
+      for (let i = currentBallPosition.row - 1; i >= 0; i--) {
         let box = column[i][currentBallPosition.column];
         if (box.value === 0) {
           targetIndex = i + 1;
