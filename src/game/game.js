@@ -52,6 +52,7 @@ let mainBoard, text, text2, btn, hand, ball, points, main, data;
 let ballActive = false;
 let fillBox;
 let fillPath;
+let upperInterval;
 let gameData = {};
 let lineArrayVertical = [];
 let lineArrayHorizontal = [];
@@ -266,7 +267,7 @@ function startGame() {
   let startPointTop = fixedPathData[0].x;
   let startPointBottom = fixedPathData[3].x;
 
-  let upperInterval = upperWidth / columns;
+  upperInterval = upperWidth / columns;
   let lowerInterval = lowerWidth / columns;
 
   // Horizontal Line Adjustments
@@ -409,6 +410,7 @@ function startGame() {
         } else drawRightBorder(gridPoints[upperRightPoint], gridPoints[lowerRightPoint], lightGray);
       }
     }
+
     boxPositions.push(row);
   }
 
@@ -463,7 +465,8 @@ function startGame() {
   ball = this.add.image(0, 0, "ball").setOrigin(0.5);
   ball.setTint(mustardYellow);
   ball.lastPosition = boxPositions[0][0];
-  console.log(boxPositions);
+  console.log(boxPositions[6][0].upperRightPoint.x);
+
   fillPath.fillPoints([ball.lastPosition.upperLeftPoint, ball.lastPosition.upperRightPoint, ball.lastPosition.lowerRightPoint, ball.lastPosition.lowerLeftPoint], true);
 
   ball.onResizeCallback = function () {
@@ -471,8 +474,6 @@ function startGame() {
     this.lastScale = this.scale;
     this.y = mainBoard.y - mainBoard.displayHeight / 2 + (ball.lastPosition.lowerLeftPoint.y * mainBoard.scale + ball.lastPosition.upperLeftPoint.y * mainBoard.scale) / 2;
     this.x = mainBoard.x - mainBoard.displayWidth / 2 + (ball.lastPosition.upperLeftPoint.x * mainBoard.scale + ball.lastPosition.upperRightPoint.x * mainBoard.scale) / 2;
-    // this.x = mainBoard.x - mainBoard.displayWidth / 2 + (gridPoints[0].x * mainBoard.scale + gridPoints[8].x * mainBoard.scale) / 2;
-    // this.y = mainBoard.y - mainBoard.displayHeight / 2 + (gridPoints[1].y * mainBoard.scale + gridPoints[0].y * mainBoard.scale) / 2;
   };
 
   hand = this.add.image(0, 0, "hand").setOrigin(0.5).setDepth(1);
@@ -525,7 +526,6 @@ function moveBall(direction) {
           break;
         }
       }
-
       targetPosition = {x: ball.x, y: ball.y};
       boxCount = Math.abs(currentBallPosition.column - targetIndex);
       position = boxPositions[currentBallPosition.row][targetIndex];
@@ -549,7 +549,7 @@ function moveBall(direction) {
       boxCount = Math.abs(currentBallPosition.column - targetIndex);
       position = boxPositions[currentBallPosition.row][targetIndex];
       targetPosition.x = ((position.upperLeftPoint.x + position.upperRightPoint.x) / 2) * mainBoard.scale + mainBoard.x - mainBoard.displayWidth / 2;
-      console.log("---" + targetPosition.x);
+
       targetPosition.y = ball.y;
 
       break;
@@ -594,7 +594,6 @@ function moveBall(direction) {
 
     default:
   }
-  //   if (!boxCount) return;
 
   ball.lastPosition = position;
 
@@ -614,12 +613,6 @@ function moveBall(direction) {
       if (pos) fillPath.fillPoints([pos.upperLeftPoint, pos.upperRightPoint, pos.lowerRightPoint, pos.lowerLeftPoint], true);
     });
   }
-
-  //   console.log(
-  //     boxPositions.some((row) => {
-  //       return row.some((box) => box.value === 1 && box.color !== false);
-  //     })
-  //   );
 
   let tri;
   let initialPos = {x: ball.getCenter().x, y: ball.getCenter().y + ball.displayHeight / 2};
@@ -729,7 +722,44 @@ window.b = function () {
   }
 };
 
-function rectShadow() {}
+function polyShadow(i, j, delay) {
+  let box = boxPositions[i][j]; // 6 -0
+  let dots = [
+    0,
+    0,
+    Math.abs(box.upperRightPoint.x - box.upperLeftPoint.x),
+    0,
+    Math.abs(box.upperRightPoint.x - box.upperLeftPoint.x),
+    Math.abs(box.upperRightPoint.y - box.lowerRightPoint.y),
+    0,
+    Math.abs(box.upperRightPoint.y - box.lowerRightPoint.y),
+  ];
+
+  let polygon = scene.add.polygon(0, 0, dots, lightGray).setDepth(0).setOrigin(0.5, 1).setAlpha(0);
+  console.log(polygon);
+
+  polygon.onResizeCallback = function () {
+    this.setScale(mainBoard.scale);
+    this.y = mainBoard.getTopCenter().y + boxPositions[i][j].lowerRightPoint.y * mainBoard.scale;
+    this.x = mainBoard.getLeftCenter().x + boxPositions[i][j].upperRightPoint.x * mainBoard.scale;
+
+    if (this.polyTween) this.polyTween.remove();
+
+    this.polyTween = scene.tweens.add({
+      targets: polygon,
+      delay: delay,
+      alpha: {from: 0.3, to: 0},
+      scaleX: {from: 0, to: 3}, // to be updated
+      x: mainBoard.getLeftCenter().x + box.upperLeftPoint.x * mainBoard.scale + polygon.displayWidth / 2,
+      ease: "Linear",
+      duration: 500,
+      repeat: -1,
+      yoyo: false,
+    });
+  };
+
+  polygon.onResizeCallback();
+}
 
 function isGameEnd() {
   let end = boxPositions.some((row) => {
@@ -768,6 +798,11 @@ function updateGame(time, delta) {
     let endGame = isGameEnd();
 
     if (!endGame) {
+      for (let i = rows - 1; i >= 0; i--) {
+        for (let j = 0; j < columns; j++) {
+          if (boardData[i][j] === 1) polyShadow(i, j, Math.min(rows - 1 - i, j) * 300);
+        }
+      }
       text.text = "LEVEL 1 CLEARED";
       text.setScale(1.5);
       window.t();
