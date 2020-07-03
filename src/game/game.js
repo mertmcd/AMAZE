@@ -52,21 +52,25 @@ let mainBoard, text, text2, btn, hand, ball, points, main, data;
 let ballActive = false;
 let fillBox;
 let fillPath;
-let upperInterval;
 let gameData = {};
 let lineArrayVertical = [];
 let lineArrayHorizontal = [];
 let gridPoints = [];
 let rows;
+let box = {};
+let n = 1;
 let prevX;
 let prevY;
+let levelNo;
 let columns;
 let currentBox;
 let bottomBox;
 let targetPosition = {};
 let boxPositions = [];
 let boardData;
-let currentBallPosition = {column: 0, row: 0};
+let c = 0;
+let r = 0;
+let currentBallPosition = {column: c, row: r};
 let darkGray = 0x4e4e58; // Color of the ball path
 let htmlDarkGray = "#4E4E58"; // Color of the text
 let offWhite = 0xffffff; // Color of the closed paths
@@ -145,17 +149,57 @@ function startGame() {
     main.game.soundOn = true;
   }
 
+  lineArrayVertical = [];
+  lineArrayHorizontal = [];
+  currentBox = [];
+  bottomBox = [];
+  gridPoints = [];
+  gameFinished = false;
+  ballParticle = null;
+  boxPositions = [];
+  levelNo = n;
+
   ///// C O D E   B E L O W \\\\\
 
-  boardData = [
-    [1, 1, 1, 1, 0, 0, 0],
-    [1, 1, 1, 1, 1, 1, 0],
-    [1, 0, 0, 1, 0, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1],
-    [0, 0, 0, 1, 0, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 0, 0, 0],
-  ];
+  if (levelNo === 1) {
+    currentBallPosition = {column: c, row: r};
+    boardData = [
+      [1, 1, 1, 1, 0, 0, 0],
+      [1, 1, 1, 1, 1, 1, 0],
+      [1, 0, 0, 1, 0, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1],
+      [0, 0, 0, 1, 0, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 0, 0, 0],
+    ];
+  } else if (levelNo === 2) {
+    currentBallPosition = {column: 1, row: 1};
+    boardData = [
+      [1, 1, 1, 0, 0, 0, 0, 0, 1, 1],
+      [1, 1, 1, 1, 1, 1, 0, 1, 1, 1],
+      [1, 0, 1, 1, 0, 1, 0, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 0, 1, 1, 1],
+      [1, 0, 0, 1, 0, 1, 0, 1, 0, 0],
+      [1, 1, 1, 1, 0, 1, 1, 1, 0, 0],
+    ];
+  } else if (levelNo === 3) {
+    currentBallPosition = {column: 0, row: 11};
+    boardData = [
+      [1, 1, 1, 0, 0, 0, 0],
+      [1, 1, 1, 1, 1, 1, 0],
+      [1, 0, 1, 1, 0, 0, 0],
+      [1, 1, 1, 1, 1, 1, 0],
+      [1, 0, 0, 1, 0, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1],
+      [0, 0, 0, 1, 0, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1],
+      [1, 0, 0, 1, 0, 0, 0],
+      [1, 1, 1, 1, 1, 1, 0],
+      [0, 0, 0, 1, 0, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 0, 0, 0],
+    ];
+  }
 
   rows = boardData.length;
   columns = boardData[0].length;
@@ -178,9 +222,9 @@ function startGame() {
   // ADD TEXTS
 
   text = this.add
-    .text(0, 0, "LEVEL 1", {
+    .text(0, 0, "LEVEL " + n, {
       fontFamily: "ui_font_1",
-      fontSize: 40,
+      fontSize: 100,
       color: htmlDarkGray,
       strokeThickness: 1.5,
       stroke: htmlDarkGray,
@@ -188,7 +232,7 @@ function startGame() {
     .setOrigin(0.5);
 
   text.onResizeCallback = function () {
-    this.setScale(mainBoard.displayWidth / 4 / this.width);
+    this.setScale(mainBoard.displayHeight / 8 / this.height);
     this.x = currentWidth / 2;
     this.y = mainBoard.getTopCenter().y / 2;
   };
@@ -203,9 +247,10 @@ function startGame() {
     })
     .setOrigin(0.5)
     .setInteractive();
+
   text2.setVisible(false);
-  text2.on("pointerdown", function () {
-    main.gotoLink();
+  text2.on("pointerdown", function (pointer) {
+    scene.scene.restart();
   });
 
   text2.onResizeCallback = function () {
@@ -267,7 +312,7 @@ function startGame() {
   let startPointTop = fixedPathData[0].x;
   let startPointBottom = fixedPathData[3].x;
 
-  upperInterval = upperWidth / columns;
+  let upperInterval = upperWidth / columns;
   let lowerInterval = lowerWidth / columns;
 
   // Horizontal Line Adjustments
@@ -287,7 +332,7 @@ function startGame() {
 
   for (let i = 0; i < columns + 1; i++) {
     let line = this.add
-      .line(0, 0, startPointTop + upperInterval * i, -0.2, startPointBottom + lowerInterval * i, mainBoard.displayHeight + 0.2, lightGray)
+      .line(0, 0, startPointTop + upperInterval * i, startPointLeft, startPointBottom + lowerInterval * i, mainBoard.displayHeight + 0.2, lightGray) // mainBoard.dispHeigh + 0.2
       .setDepth(1)
       .setOrigin(0);
     line.setLineWidth(0.3);
@@ -297,9 +342,10 @@ function startGame() {
       this.y = mainBoard.getTopLeft().y;
       this.x = mainBoard.getBounds().x;
     };
+    //line.onResizeCallback(scene.lastWidth, scene.lastHeight);
     lineArrayVertical.push(line);
   }
-  // console.log(lineArrayVertical);0
+  console.log(lineArrayVertical);
   lineArrayVertical[0].setVisible(false);
   lineArrayVertical[columns].setVisible(false);
 
@@ -311,14 +357,14 @@ function startGame() {
       .setDepth(1)
       .setOrigin(0);
     line.setLineWidth(0.3);
+    // x1 icin -0.2, x2 icin + 0.2
 
     line.onResizeCallback = function (w, h) {
       this.setScale(mainBoard.scale);
-
       this.y = mainBoard.getBounds().y;
       this.x = mainBoard.getBounds().x;
     };
-    line.onResizeCallback(scene.lastWidth, scene.lastHeight);
+    // line.onResizeCallback(scene.lastWidth, scene.lastHeight);
     lineArrayHorizontal.push(line);
   }
 
@@ -330,16 +376,19 @@ function startGame() {
   for (let i = 0; i < columns + 1; i++) {
     for (let j = 0; j < rows + 1; j++) {
       let out = [];
-      let intersection = Phaser.Geom.Intersects.LineToLine(lineArrayVertical[i].geom, lineArrayHorizontal[j].geom, out);
+      // let intersection;
+      Phaser.Geom.Intersects.LineToLine(lineArrayVertical[i].geom, lineArrayHorizontal[j].geom, out);
       gridPoints.push(out);
+      //console.log(intersection);
     }
   }
+  //console.log(gridPoints);
 
   // FILLING BOXES AND PATHS
 
   fillBox = this.add.graphics({fillStyle: {color: offWhite}}).setDepth(1);
 
-  fillBox.onResizeCallback = function (w, h) {
+  fillBox.onResizeCallback = function () {
     this.setScale(mainBoard.scale);
     this.y = mainBoard.getBounds().y;
     this.x = mainBoard.getBounds().x;
@@ -347,7 +396,7 @@ function startGame() {
 
   fillPath = this.add.graphics({fillStyle: {color: mustardYellow}});
 
-  fillPath.onResizeCallback = function (w, h) {
+  fillPath.onResizeCallback = function () {
     this.setScale(mainBoard.scale);
     this.y = mainBoard.getBounds().y;
     this.x = mainBoard.getBounds().x;
@@ -366,7 +415,7 @@ function startGame() {
       let lowerLeftPoint = upperLeftPoint + 1;
       let lowerRightPoint = upperRightPoint + 1;
 
-      let box = {
+      box = {
         value: currentBox,
         upperLeftPoint: gridPoints[upperLeftPoint],
         upperRightPoint: gridPoints[upperRightPoint],
@@ -374,6 +423,7 @@ function startGame() {
         lowerRightPoint: gridPoints[lowerRightPoint],
         color: i === 0 && j === 0, // variable
       };
+
       row.push(box);
 
       // If box is white:
@@ -451,7 +501,6 @@ function startGame() {
 
   function drawRightBorder(startPoint, endPoint, color) {
     let border = scene.add.line(0, 0, startPoint.x + 1, startPoint.y - 4, endPoint.x + 1, endPoint.y - 4, color).setOrigin(0);
-    //.setDepth(1);
     border.onResizeCallback = function (w, h) {
       this.setScale(mainBoard.scale);
       this.y = mainBoard.getBounds().y;
@@ -476,7 +525,7 @@ function startGame() {
     this.x = mainBoard.x - mainBoard.displayWidth / 2 + (ball.lastPosition.upperLeftPoint.x * mainBoard.scale + ball.lastPosition.upperRightPoint.x * mainBoard.scale) / 2;
   };
 
-  hand = this.add.image(0, 0, "hand").setOrigin(0.5).setDepth(1);
+  hand = ui.add.image(0, 0, "hand").setOrigin(0.5).setDepth(1);
   hand.setTintFill(offWhite);
 
   hand.onResizeCallback = function () {
@@ -486,9 +535,9 @@ function startGame() {
 
     let handTween = scene.tweens.add({
       targets: hand,
-      x: hand.x + 200,
+      x: hand.x + mainBoard.displayWidth / 3,
       y: hand.y,
-      alpha: {from: 1, to: 0},
+      alpha: {from: 1, to: 0.5},
       ease: "Linear",
 
       duration: 1000,
@@ -498,6 +547,7 @@ function startGame() {
 
     scene.tweens.killTweensOf(hand);
   };
+  main.resizeNow();
 }
 
 function moveBall(direction) {
@@ -614,7 +664,7 @@ function moveBall(direction) {
       if (pos) fillPath.fillPoints([pos.upperLeftPoint, pos.upperRightPoint, pos.lowerRightPoint, pos.lowerLeftPoint], true);
     });
   }
-
+  console.log(boxCount);
   let tri;
   let initialPos = {x: ball.getCenter().x, y: ball.getCenter().y + ball.displayHeight / 2};
   let initialPos2 = {x: ball.getCenter().x + ball.displayHeight / 2, y: ball.getCenter().y};
@@ -737,7 +787,7 @@ function polyShadow(i, j, delay) {
   ];
 
   let polygon = scene.add.polygon(0, 0, dots, lightGray).setDepth(0).setOrigin(0.5, 1);
-  console.log(polygon);
+  //console.log(polygon);
 
   polygon.onResizeCallback = function () {
     this.setScale(mainBoard.scale);
@@ -782,15 +832,15 @@ function updateGame(time, delta) {
   if (pointer.isDown && !gameFinished) {
     if (pointer.x !== prevX || pointer.y !== prevY) {
       if (Math.abs(pointer.x - prevX) > Math.abs(pointer.y - prevY)) {
-        if (pointer.x - prevX > 15) {
+        if (pointer.x - prevX > 20) {
           moveBall("right");
-        } else if (pointer.x - prevX < -15) {
+        } else if (pointer.x - prevX < -20) {
           moveBall("left");
         }
       } else {
-        if (pointer.y - prevY < -15) {
+        if (pointer.y - prevY < -20) {
           moveBall("up");
-        } else if (pointer.y - prevY > 15) {
+        } else if (pointer.y - prevY > 20) {
           moveBall("down");
         }
       }
@@ -806,12 +856,14 @@ function updateGame(time, delta) {
           if (boardData[i][j] === 1) polyShadow(i, j, Math.min(rows - 1 - i, j) * 300);
         }
       }
-      text.text = "LEVEL 1 CLEARED";
-      text.setScale(1.5);
+      text.text = "LEVEL " + n + " CLEARED";
+      text.setScale(text.scale);
       window.t();
-      btn.setVisible(false);
-      text2.setVisible(true);
+      btn.destroy();
       gameFinished = true;
+      n = n + 1;
+      if (levelNo === 3) text2.setVisible(false);
+      else text2.setVisible(true);
     }
   } else {
     prevX = undefined;
